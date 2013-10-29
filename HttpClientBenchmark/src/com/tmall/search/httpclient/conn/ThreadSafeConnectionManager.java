@@ -5,7 +5,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -91,27 +90,26 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @param create 是否创建,默认写死创建.
 	 * @return
 	 */
-	/*private HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
+	private HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
 		HostConnectionQueue connections = pool.get(host);
 		if (connections == null) {
 			connections = new HostConnectionQueue();
-			pool.put(host, connections);
 			HostConnectionQueue value = pool.putIfAbsent(host, connections);
 			if(value!=null){
 				connections = value;
 			}
 		}
 		return connections;
-	}*/
+	}
 	
-	private synchronized HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
+	/*private synchronized HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
 		HostConnectionQueue connections = pool.get(host);
 		if (connections == null) {
 			connections = new HostConnectionQueue();
 			pool.put(host, connections);
 		}
 		return connections;
-	}
+	}*/
 
 	/**
 	 * 得到空闲conn,判断链接是否过期,如果过期,继续取得下一个链接.
