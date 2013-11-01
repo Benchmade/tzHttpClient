@@ -24,6 +24,8 @@ public class TmallHttpClient {
 		return director.executeNew();
 	}
 	
+	
+	
 	public void close() throws IOException {
 		connManager.shutDown();
 	}
@@ -32,10 +34,11 @@ public class TmallHttpClient {
 		//Thread.sleep(10000);
 		TmallHttpClient h = new TmallHttpClient();
 		long s = System.currentTimeMillis();
-		for(int i=0;i<100000;i++){
-			HttpRequest req = new HttpRequest("http://localhost:8080/BenchmadeWeb/xxx?q="+i);
+		for(int i=0;i<100;i++){
+			HttpRequest req = new HttpRequest("http://list.daily.tmall.net//search_product.htm?tbpm=1&q=nike");
 			//HttpRequest req = new HttpRequest("http://10.232.43.8:8000/qp?usernid=-1&rqtest=dynamic&s=mall&c=50024400&src=tmall-search_10.13.134.15&k=&rc=50024400&nopt=1&outfmt=xml");
 			HttpResponse hr = h.executeMethod(req);
+			System.out.println(hr.toString());
 			/*if(i%100==0){
 				System.out.println(hr.toString());
 			}*/

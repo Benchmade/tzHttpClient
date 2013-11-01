@@ -3,6 +3,7 @@ package com.tmall.search.httpclient.conn;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.httpclient.ProtocolException;
@@ -30,6 +31,8 @@ public interface HttpConnection {
 	 * 连接是否过期.
 	 * @return 返回true 没过期 ,返回false 连接过期
 	 */
-	public boolean isNotExpired();
+	public boolean isExpired();
+	
+	public boolean isExpired(long idletime, TimeUnit tunit);
 
 }

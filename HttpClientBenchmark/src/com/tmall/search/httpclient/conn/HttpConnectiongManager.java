@@ -1,7 +1,9 @@
 package com.tmall.search.httpclient.conn;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.util.HttpException;
 
 public interface HttpConnectiongManager {
@@ -10,4 +12,6 @@ public interface HttpConnectiongManager {
 	public void deleteConnection(HttpHost host, HttpConnection conn) throws IOException;
 	public void close(HttpHost host , HttpConnection conn);
 	public void shutDown() throws IOException;
+	public void closeIdleConnections(long idletime, TimeUnit tunit);
+	public ConnManagerParams getParam();
 }

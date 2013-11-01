@@ -30,7 +30,7 @@ public class AIOConnectionImpl implements HttpConnection {
 	private int executeCount = 0;
 	private long connectTime = Long.MAX_VALUE;
 
-	public AIOConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException{
+	public AIOConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
 		this.connParams = connParams;
 		try {
 			client = AsynchronousSocketChannel.open();
@@ -38,16 +38,16 @@ public class AIOConnectionImpl implements HttpConnection {
 				client.setOption(StandardSocketOptions.SO_RCVBUF, this.connParams.getValue(Options.SO_RCVBUF));
 				client.setOption(StandardSocketOptions.SO_SNDBUF, this.connParams.getValue(Options.SO_SNDBUF));
 				client.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
-				client.connect(new InetSocketAddress(host.getHost(), host.getPort())).get(this.connParams.getValue(Options.CONNECTION_TIMEOUT), TimeUnit.MILLISECONDS);
+				client.connect(new InetSocketAddress(host.getHost(), host.getPort())).get(this.connParams.getValue(Options.CONNECTION_TIMEOUT),
+						TimeUnit.MILLISECONDS);
 			}
 		} catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
-			throw new HttpException(e.getMessage());
+			throw new HttpException("create Connection error ", e);
 		}
 		readbuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_RCVBUF));
 		writebuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_SNDBUF));
-		
+
 	}
-	
 
 	public HttpResponse readResp() throws InterruptedException, ExecutionException, TimeoutException, ProtocolException {
 		int readLength = client.read(readbuffer).get(this.connParams.getValue(Options.READER_TIMROUT), TimeUnit.MILLISECONDS);
@@ -130,12 +130,18 @@ public class AIOConnectionImpl implements HttpConnection {
 
 	/**
 	 * 判断链接是否过期,如果链接在超时时间内,并且连接数在限制范围内,那么设置这个链接为过期链接.
-	 * @return 如果没有过期,然会true  过期返回false
+	 * @return 如果过期true  没有过期返回false
 	 */
 	@Override
-	public boolean isNotExpired() {
+	public boolean isExpired() {
+		return this.isExpired(this.connParams.getValue(Options.CONNECT_TIMEOUT_EXPIRE), TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public boolean isExpired(long idletime, TimeUnit tunit) {
 		//if (this.connParams.getValue(Options.) > executeCount && System.currentTimeMillis() - connectTime < this.connParams.getConnTimeOutExpire()) {
-		if (System.currentTimeMillis() - connectTime < this.connParams.getValue(Options.CONNECT_TIMEOUT_EXPIRE)) {
+		long deadline = tunit.toMillis(idletime);
+		if (System.currentTimeMillis() - connectTime > deadline) {
 			return true;
 		} else {
 			return false;

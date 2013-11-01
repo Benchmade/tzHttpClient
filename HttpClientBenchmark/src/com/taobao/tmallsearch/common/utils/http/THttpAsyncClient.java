@@ -14,7 +14,7 @@ import com.taobao.tmallsearch.httpasync.reactor.IOReactorException;
 public class THttpAsyncClient {
     public static HttpAsyncClient client = null;
 
-    private final static String testUrl = "http://localhost:8080/BenchmadeWeb/xxx?q=";
+    private final static String testUrl = "http://list.daily.tmall.net//search_product.htm?tbpm=1&q=nike";
 
     static {
         try {
@@ -41,7 +41,7 @@ public class THttpAsyncClient {
     	for (int i = 0; i < 100; i++) {
             String queryURL = testUrl;
             HttpClientWapper httpclient = HttpClientFactory.getHttpClient();
-            httpclient.getBytes(queryURL);
+            System.out.println(new String(httpclient.getBytes(queryURL)));
         }
     	 System.out.println(System.currentTimeMillis() - s);
     }
@@ -75,6 +75,6 @@ public class THttpAsyncClient {
 
     public static void main(String[] args) throws Exception {
     	THttpAsyncClient test = new THttpAsyncClient();
-        test.testSync();
+        test.testApacheHttpClient();
     }
 }

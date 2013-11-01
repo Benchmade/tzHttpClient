@@ -1,9 +1,11 @@
 package com.tmall.search.httpclient.conn;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.LogManager;
@@ -24,7 +26,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 
 	/**
 	 * 构造线程安全的链接管理器.
-	 * @param connParam 配置参数暂时只能继承改写.
+	 * @param connParam.
 	 * @param hostNum	concurrent的分块数量,影响到并发性能,根据多少ip来设置.
 	 */
 	public ThreadSafeConnectionManager(ConnManagerParams connParam, int hostNum) {
@@ -41,11 +43,6 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	/**
-	 * 大访问量,高
-		多台服务器时,如果一个相应时间长,那么会为这个机器创建大量的链接.
-		1. 限制单个机器最大申请链接的数量.
-		2. 申请conn时自旋等待,设置超时.
-		3. 
 	 * @throws HttpException 
 	 * @throws InterruptedException 
 	 * @throws IOException 
@@ -85,7 +82,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	/**
-	 * 获取一个host对应的queue,如果在管理对象的pool中没有,新创建一个.添加synchronized目的和单例一样.创建并发覆盖put的问题.
+	 * host单例
 	 * @param host
 	 * @param create 是否创建,默认写死创建.
 	 * @return
@@ -95,21 +92,28 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		if (connections == null) {
 			connections = new HostConnectionQueue();
 			HostConnectionQueue value = pool.putIfAbsent(host, connections);
-			if(value!=null){
+			if (value != null) {
 				connections = value;
 			}
 		}
 		return connections;
 	}
-	
-	/*private synchronized HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
-		HostConnectionQueue connections = pool.get(host);
-		if (connections == null) {
-			connections = new HostConnectionQueue();
-			pool.put(host, connections);
+
+	@Override
+	public void closeIdleConnections(long idletime, TimeUnit tunit) {
+		long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
+		boolean isOutOfBounds = this.connParam.getValue(Options.MAX_TOTAL_HOST) > pool.size();
+		Enumeration<HttpHost> hosts = pool.keys();
+		HttpHost host ;
+		while (hosts.hasMoreElements()) {
+			host = hosts.nextElement();
+			HostConnectionQueue hcq = pool.get(host);
+			hcq.clearIdle();
+			if(hcq.liveConnNum.intValue()==0 && isOutOfBounds){
+				pool.remove(host);
+			}
 		}
-		return connections;
-	}*/
+	}
 
 	/**
 	 * 得到空闲conn,判断链接是否过期,如果过期,继续取得下一个链接.
@@ -121,7 +125,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue, HttpHost host) throws IOException {
 		HttpConnection connection = null;
 		while ((connection = hostQueue.connQueue.poll()) != null) {
-			if (connection.isNotExpired()) {//判断是否过期
+			if (!connection.isExpired()) {//判断是否过期
 				return connection;
 			} else {
 				deleteConnection(hostQueue, connection, host);
@@ -181,6 +185,12 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		}
 	}
 
+	@Override
+	public ConnManagerParams getParam() {
+		return connParam;
+	}
+	
+	
 	/**
 	 * 每个host对应的链接队列
 	 * @author xiaolin.mxl
@@ -188,8 +198,22 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	private class HostConnectionQueue {
 		//每个host的链接队列
 		private ConcurrentLinkedQueue<HttpConnection> connQueue = new ConcurrentLinkedQueue<HttpConnection>();
-		//这个host新建链接在队列外的数量
+		//这个host 链接在 数量
 		private AtomicInteger liveConnNum = new AtomicInteger();
+		
+		public void clearIdle(){
+			HttpConnection conn;
+			while((conn=connQueue.poll())!=null){
+				try {
+					if(conn.isExpired()){
+						conn.close();
+						liveConnNum.decrementAndGet();
+					}
+				} catch (IOException e) {
+					LOG.warn("conn clear ", e);
+				}
+			}
+		}
 	}
 
 }

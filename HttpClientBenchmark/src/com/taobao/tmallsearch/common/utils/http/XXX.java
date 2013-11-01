@@ -1,11 +1,16 @@
 package com.taobao.tmallsearch.common.utils.http;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ArrayBlockingQueue;
+
 
 public class XXX {
-	public static void main(String[] args) throws InterruptedException {
-		ConcurrentHashMap<String, String> chm = new ConcurrentHashMap<>();
-		String a = chm.putIfAbsent("xiaolin", "mu");
-		System.out.println(a);
+
+	public static void main(String[] args) throws Exception {
+
+		
+		System.out.println(true | true |true);
+		
+		System.out.println(false | false);
+		
 	}
 }
