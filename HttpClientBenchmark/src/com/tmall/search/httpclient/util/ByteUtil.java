@@ -1,6 +1,7 @@
 package com.tmall.search.httpclient.util;
 
 
+
 public final class ByteUtil {
 
 	private static final byte[] CHUNK_END = new byte[] { 10, 13, 10, 13, 48 };
@@ -60,7 +61,7 @@ public final class ByteUtil {
 			return true;
 		}
 		if (chunkInfo.getLastBuffRemaining() != null && chunkInfo.getLastBuffRemaining().length + length < 5) {
-			throw new NullPointerException("xxxx");
+			throw new NullPointerException("Check chunk end mark error");
 		}
 		byte cc;
 		for (int i = 0; i < CHUNK_END.length; i++) {
@@ -132,7 +133,7 @@ public final class ByteUtil {
 					pos = length;
 				} else {
 					if (buffer[pos] != HttpUtil.CR && buffer[pos + 1] != HttpUtil.LF) {
-						throw new NullPointerException("xzcxzczxc");//没有正常结束
+						throw new NullPointerException("this chunk terminated abnormally CRLF");//没有正常结束
 					} else {
 						pos = pos + 2;
 						if(length - pos <2){

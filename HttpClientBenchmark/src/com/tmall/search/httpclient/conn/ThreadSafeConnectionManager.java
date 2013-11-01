@@ -63,7 +63,6 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			LOG.debug("Create New Connection for [" + host.toString() + "](" + hostQueue.liveConnNum.intValue() + ")");
 		} else {//放弃blocking模式提高性能,但是没有好的方式实现blocking模式的实时通知.只能wait后再获得,期间可能有空闲被取走,nofair
 			//Thread.sleep(this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT));
-			LOG.warn("wait!!");
 			long timeOut = System.currentTimeMillis() + this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT);
 			while ((connection = hostQueue.connQueue.poll()) == null) {
 				if (System.currentTimeMillis() > timeOut) {

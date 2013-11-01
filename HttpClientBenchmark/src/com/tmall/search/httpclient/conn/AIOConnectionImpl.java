@@ -64,8 +64,6 @@ public class AIOConnectionImpl implements HttpConnection {
 					if(readbuffer.get(readbuffer.position()-2)==52 && readbuffer.get(readbuffer.position()-1)==48){
 						System.out.println();
 					}
-				}else{
-					System.out.println("xxx");
 				}*/
 				ByteUtil.fillChunkBody(xiaolin, readbuffer.array(), xiaolin.getChunkData() == null ? header.getLength() : 0, readbuffer.position());
 				readbuffer.clear();

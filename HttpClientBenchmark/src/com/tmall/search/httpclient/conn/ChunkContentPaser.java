@@ -12,7 +12,7 @@ import com.tmall.search.httpclient.util.HttpException;
 public class ChunkContentPaser implements ContentPaser {
 
 	@Override
-	public byte[] paser(HttpConnection conn, Header header, ByteBuffer readBuffer) throws HttpException{
+	public byte[] paser(HttpConnection conn, Header header, ByteBuffer readBuffer) throws HttpException {
 		byte[] respData;
 		ByteBuffer buffer = readBuffer;
 		ChunkStateInfo xiaolin = new ChunkStateInfo();
@@ -26,7 +26,7 @@ public class ChunkContentPaser implements ContentPaser {
 				try {
 					buffer = conn.read();
 				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					throw new HttpException(e.getMessage());
+					throw new HttpException("Paser Chunk data error", e);
 				}
 			}
 		}

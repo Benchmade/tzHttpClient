@@ -20,21 +20,6 @@ public class HttpResponse {
 		isClose = header.isClose();
 	}
 
-	/*public HttpResponse(byte[] data) throws ProtocolException {
-		List<String> statusList = new ArrayList<String>();
-		int offset = readHeader(data, statusList);
-		if (offset == -1) {
-			throw new ProtocolException("Header Info is null.");
-		}
-		headerElements = HeaderParser.parser(statusList);
-		if ("chunked".equalsIgnoreCase(headerElements.get("Transfer-Encoding"))) {
-			bodyData = ByteUtil.getChunkData(data, offset).getChunkData();
-		} else {
-			bodyData = new byte[data.length - offset];
-			System.arraycopy(data, offset, bodyData, 0, data.length - offset);
-		}
-	}
-*/
 	public byte[] getBodyData() {
 		return bodyData;
 	}
