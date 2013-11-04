@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,7 +17,7 @@ import com.tmall.search.httpclient.util.HttpException;
 
 public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 
-	private Logger LOG = LogManager.getLogger(ThreadSafeConnectionManager.class);
+	private static final Logger LOG = LogManager.getLogger(ThreadSafeConnectionManager.class);
 	//链接的管理池
 	private final ConcurrentHashMap<HttpHost, HostConnectionQueue> pool;
 	private ConnManagerParams connParam;
@@ -61,20 +61,11 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			connection = new AIOConnectionImpl(host, connParam);
 			hostQueue.liveConnNum.incrementAndGet();
 			LOG.debug("Create New Connection for [" + host.toString() + "](" + hostQueue.liveConnNum.intValue() + ")");
-		} else {//放弃blocking模式提高性能,但是没有好的方式实现blocking模式的实时通知.只能wait后再获得,期间可能有空闲被取走,nofair
-			//Thread.sleep(this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT));
-			long timeOut = System.currentTimeMillis() + this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT);
-			while ((connection = hostQueue.connQueue.poll()) == null) {
-				if (System.currentTimeMillis() > timeOut) {
-					throw new HttpException("Failed to acquire connection: " + host.toString());
-				}
-				synchronized (hostQueue) {
-					try {
-						hostQueue.wait(500);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
+		} else {
+			try {
+				connection = hostQueue.connQueue.poll(this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT), TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				throw new HttpException("Unable to get a free connection from Queue", e);
 			}
 		}
 		return connection;
@@ -103,12 +94,12 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
 		boolean isOutOfBounds = this.connParam.getValue(Options.MAX_TOTAL_HOST) > pool.size();
 		Enumeration<HttpHost> hosts = pool.keys();
-		HttpHost host ;
+		HttpHost host;
 		while (hosts.hasMoreElements()) {
 			host = hosts.nextElement();
 			HostConnectionQueue hcq = pool.get(host);
 			hcq.clearIdle();
-			if(hcq.liveConnNum.intValue()==0 && isOutOfBounds){
+			if (hcq.liveConnNum.intValue() == 0 && isOutOfBounds) {
 				pool.remove(host);
 			}
 		}
@@ -188,23 +179,22 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	public ConnManagerParams getParam() {
 		return connParam;
 	}
-	
-	
+
 	/**
 	 * 每个host对应的链接队列
 	 * @author xiaolin.mxl
 	 */
 	private class HostConnectionQueue {
 		//每个host的链接队列
-		private ConcurrentLinkedQueue<HttpConnection> connQueue = new ConcurrentLinkedQueue<HttpConnection>();
+		private LinkedTransferQueue<HttpConnection> connQueue = new LinkedTransferQueue<HttpConnection>();
 		//这个host 链接在 数量
 		private AtomicInteger liveConnNum = new AtomicInteger();
-		
-		public void clearIdle(){
+
+		public void clearIdle() {
 			HttpConnection conn;
-			while((conn=connQueue.poll())!=null){
+			while ((conn = connQueue.poll()) != null) {
 				try {
-					if(conn.isExpired()){
+					if (conn.isExpired()) {
 						conn.close();
 						liveConnNum.decrementAndGet();
 					}

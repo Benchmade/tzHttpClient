@@ -9,8 +9,8 @@ public final class ConnManagerParams {//待修改
 		WRITE_TIMEOUT(100),//向服务器发送写请求超时
 		READER_TIMROUT(500),//读取response超时时间
 		CONNECT_TIMEOUT_EXPIRE(10000),//keepAlive超时时间
-		GET_CONN_WAIT_TIMEOUT(3000),//获得conn对象等待超时时间.高并发时为了防止conn过多内存溢出
-		CONN_MAX_NUM_PER_HOST(10),//每个host最大拥有的连接数.
+		GET_CONN_WAIT_TIMEOUT(1000),//获得conn对象等待超时时间.高并发时为了防止conn过多内存溢出
+		CONN_MAX_NUM_PER_HOST(3),//每个host最大拥有的连接数.
 		MAX_TOTAL_HOST(200);
 		private int value;
 		private Options(int value) {

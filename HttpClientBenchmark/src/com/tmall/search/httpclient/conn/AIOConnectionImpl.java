@@ -42,7 +42,7 @@ public class AIOConnectionImpl implements HttpConnection {
 						TimeUnit.MILLISECONDS);
 			}
 		} catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
-			throw new HttpException("create Connection error ", e);
+			throw new HttpException("Create Connection error ", e);
 		}
 		readbuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_RCVBUF));
 		writebuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_SNDBUF));
@@ -122,6 +122,8 @@ public class AIOConnectionImpl implements HttpConnection {
 
 	@Override
 	public void close() throws IOException {
+		client.shutdownInput();
+		client.shutdownOutput();
 		client.close();
 		client = null;
 	}
