@@ -31,7 +31,7 @@ public class RequestDirector {
 		this.resq = resq;
 	}
 	
-	public HttpResponse executeNew() throws IOException {
+	public HttpResponse execute() throws IOException {
 		int execCount=0;
 		conn = manager.getConnectionWithTimeout(resq.getHost());
 		HttpResponse hr = null;

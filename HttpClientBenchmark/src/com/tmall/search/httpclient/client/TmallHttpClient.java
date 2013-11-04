@@ -21,7 +21,7 @@ public class TmallHttpClient {
 	
 	public HttpResponse executeMethod(HttpRequest req) throws HttpException, IOException{
 		RequestDirector director = new RequestDirector(connManager,req);
-		return director.executeNew();
+		return director.execute();
 	}
 	
 	
