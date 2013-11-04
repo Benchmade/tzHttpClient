@@ -29,6 +29,30 @@ public class Benchmark {
 		xiaolinHttp();
 		//ApacheHttp();
 		//Thread.sleep(10000);
+		
+		/*HttpClient hc = new HttpClient();
+		try {
+			HttpMethod method = new GetMethod("http://list.tmall.com/search_product.htm?spm=3.1000473.295281.84.Gq3ZVj&brand=21140&cat=50026461&acm=08220.1003.2.21140_6&scm=1003.3.08220.2");
+			try {
+				hc.executeMethod(method);
+			} catch (Exception e) {
+				method.releaseConnection();
+				e.printStackTrace();
+			}
+
+			byte[] responseBody = null;
+			try {
+				InputStream is = method.getResponseBodyAsStream();
+				responseBody = IOUtils.toByteArray(is);
+				//System.out.println(new String(responseBody));
+				is.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			method.releaseConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}*/
 	}
 
 	public static void xiaolinHttp() throws Exception {

@@ -1,5 +1,6 @@
 package com.tmall.search.httpclient.client;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -11,13 +12,13 @@ public class HttpResponse {
 	private Map<String, String> headerElements;
 	private int statusCode;
 	private String protocolVersion;
-	private boolean isClose;
+	private boolean isClosed;
 	public HttpResponse(Header header, byte[] data) {
 		bodyData = data;
 		headerElements = header.getHeaderElements();
 		statusCode = header.getStatusCode();
 		protocolVersion = header.getProtocolVersion();
-		isClose = header.isClose();
+		isClosed = header.isClosed();
 	}
 
 	public byte[] getBodyData() {
@@ -47,6 +48,7 @@ public class HttpResponse {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append(statusCode).append("\n");
 		for (Entry<String, String> entry : headerElements.entrySet()) {
 			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 		}
@@ -58,8 +60,8 @@ public class HttpResponse {
 	public static void main(String[] args) {
 	}
 
-	public boolean isClose() {
-		return isClose;
+	public boolean isClosed() {
+		return isClosed;
 	}
 	
 }

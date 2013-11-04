@@ -34,8 +34,8 @@ public class TmallHttpClient {
 		//Thread.sleep(10000);
 		TmallHttpClient h = new TmallHttpClient();
 		long s = System.currentTimeMillis();
-		for(int i=0;i<100;i++){
-			HttpRequest req = new HttpRequest("http://list.daily.tmall.net//search_product.htm?tbpm=1&q=nike");
+		for(int i=0;i<1;i++){
+			HttpRequest req = new HttpRequest("http://list.tmall.com/search_product.htm?spm=3.1000473.295281.84.Gq3ZVj&brand=21140&cat=50026461&acm=08220.1003.2.21140_6&scm=1003.3.08220.2");
 			//HttpRequest req = new HttpRequest("http://10.232.43.8:8000/qp?usernid=-1&rqtest=dynamic&s=mall&c=50024400&src=tmall-search_10.13.134.15&k=&rc=50024400&nopt=1&outfmt=xml");
 			HttpResponse hr = h.executeMethod(req);
 			System.out.println(hr.toString());

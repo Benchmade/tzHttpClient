@@ -8,34 +8,6 @@ import org.apache.commons.httpclient.ProtocolException;
 
 public final class HeaderParser {
 
-	
-	public static final int SP = 32; // <US-ASCII SP, space (32)>
-	public static final int HT = 9; // <US-ASCII HT, horizontal-tab (9)>
-
-	/** HTTP header definitions */
-	public static final String TRANSFER_ENCODING = "Transfer-Encoding";
-	public static final String CONTENT_LEN = "Content-Length";
-	public static final String CONTENT_TYPE = "Content-Type";
-	public static final String CONTENT_ENCODING = "Content-Encoding";
-	public static final String EXPECT_DIRECTIVE = "Expect";
-	public static final String CONN_DIRECTIVE = "Connection";
-	public static final String TARGET_HOST = "Host";
-	public static final String USER_AGENT = "User-Agent";
-	public static final String DATE_HEADER = "Date";
-	public static final String SERVER_HEADER = "Server";
-
-	/** HTTP expectations */
-	public static final String EXPECT_CONTINUE = "100-continue";
-
-	/** HTTP connection control */
-	public static final String CONN_CLOSE = "Close";
-	public static final String CONN_KEEP_ALIVE = "Keep-Alive";
-
-	/** Transfer encoding definitions */
-	public static final String CHUNK_CODING = "chunked";
-	public static final String IDENTITY_CODING = "identity";
-
-	
 	/**
 	 * 处理List的headerline,转化为Header对象.
 	 * @param statusList 

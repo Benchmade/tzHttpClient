@@ -1,6 +1,10 @@
 package com.tmall.search.httpclient.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 
 public final class ByteUtil {
 
@@ -27,16 +31,16 @@ public final class ByteUtil {
 	public static byte[] mergeByteArray(byte[] data, byte[] increment, int start, int copyLength) {
 		byte[] resultArray;
 		if (data == null || data.length == 0) {//如果原始的数组是空的,那么直接截取新增的数组
-			if (increment == null || copyLength <= 0 || start==increment.length) {
+			if (increment == null || copyLength <= 0 || start == increment.length) {
 				resultArray = new byte[0];
 			} else {
 				resultArray = new byte[copyLength];
 				System.arraycopy(increment, start, resultArray, 0, copyLength);
 			}
 		} else {
-			if (increment == null || copyLength <= 0 || start==increment.length) { //如果后面的数组限定条件有问题,那么直接返回前面的数组
+			if (increment == null || copyLength <= 0 || start == increment.length) { //如果后面的数组限定条件有问题,那么直接返回前面的数组
 				resultArray = data;
-			}else{
+			} else {
 				resultArray = new byte[data.length + copyLength];
 				System.arraycopy(data, 0, resultArray, 0, data.length);
 				System.arraycopy(increment, start, resultArray, data.length, copyLength);
@@ -107,7 +111,7 @@ public final class ByteUtil {
 						throw new NullPointerException("this chunk terminated abnormally CRLF");//没有正常结束
 					} else {
 						pos = pos + 2;
-						if(length - pos <2){
+						if (length - pos < 2) {
 							byte[] residueData = new byte[length - pos];
 							System.arraycopy(buffer, pos, residueData, 0, length - pos);
 							chunkInfo.setLastBuffRemaining(residueData);
@@ -120,11 +124,11 @@ public final class ByteUtil {
 		for (int i = pos; i < length - 1; i++) {
 			if (buffer[i] == HttpUtil.CR && buffer[i + 1] == HttpUtil.LF) {
 				int chunkSize = Integer.parseInt(new String(buffer, pos, i - pos), 16);
-				if(chunkSize==0){
-					if(i+3<length){
+				if (chunkSize == 0) {
+					if (i + 3 < length) {
 						break;
 					}
-				}else{
+				} else {
 					chunkInfo.setShengyu(chunkSize);
 					i = fillChunkBody(chunkInfo, buffer, i + 2, length);
 					pos = i;
@@ -139,4 +143,25 @@ public final class ByteUtil {
 		return pos;
 	}
 
+	public static byte[] unCompress(byte[] compressData) throws HttpException{
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(compressData);
+		GZIPInputStream gZIPInputStream = null;
+		byte[] result = null;
+		try {
+			gZIPInputStream = new GZIPInputStream(byteArrayInputStream);
+			result = IOUtils.toByteArray(gZIPInputStream);
+			byteArrayInputStream.close();
+		} catch (IOException e) {
+			try {
+				byteArrayInputStream.close();
+				if(gZIPInputStream!=null){
+					gZIPInputStream.close();
+				}
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			throw new HttpException("UnCompress Failure.",e);
+		}
+		return result;
+	}
 }

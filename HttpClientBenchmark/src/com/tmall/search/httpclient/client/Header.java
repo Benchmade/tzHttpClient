@@ -20,7 +20,8 @@ public class Header {
 	private String protocolVersion;
 	private boolean isChunk = false;//是否chunk模式读取
 	private int length;
-	private boolean isClose = false;//是否被服务器端关闭
+	private boolean isClosed = false;//是否被服务器端关闭
+	private boolean isCompressed = false;
 	
 	public Header(ByteBuffer buffer) throws ProtocolException {
 		List<String> statusList = new ArrayList<String>();
@@ -33,7 +34,10 @@ public class Header {
 			isChunk = true;
 		}
 		if ("close".equals(headerElements.get("Connection"))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
-			isClose = true;
+			isClosed = true;
+		}
+		if ("gzip".equals(headerElements.get("Content-Encoding"))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+			isCompressed = true;
 		}
 	}
 	
@@ -55,7 +59,7 @@ public class Header {
 				}
 				line = new String(data, pos, i - pos);
 				if (pos == 0) {
-					paserStatusCode(line,data);
+					paserRequestLine(line,data);
 				} else {
 					statusList.add(line);
 				}
@@ -78,8 +82,8 @@ public class Header {
 					break;
 				}
 				line = new String(data.array(), pos, i - pos);
-				if (pos == 0) {
-					paserStatusCode(line,data.array());
+				if (pos == 0) {//RequestLine
+					paserRequestLine(line,data.array());
 				} else {
 					statusList.add(line);
 				}
@@ -96,7 +100,7 @@ public class Header {
 	 * @param line
 	 * @throws ProtocolException
 	 */
-	private void paserStatusCode(String line,byte[] data) throws ProtocolException {
+	private void paserRequestLine(String line,byte[] data) throws ProtocolException {
 		int versionPos = line.indexOf('/');
 		if (versionPos == -1) {
 			throw new ProtocolException("Invalid HTTP Protocol name: " + line);
@@ -137,7 +141,12 @@ public class Header {
 		return length;
 	}
 
-	public boolean isClose() {
-		return isClose;
+	public boolean isClosed() {
+		return isClosed;
 	}
+
+	public boolean isCompressed() {
+		return isCompressed;
+	}
+	
 }
