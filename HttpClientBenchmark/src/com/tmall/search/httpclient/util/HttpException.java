@@ -35,13 +35,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
-/**
- * Signals that an HTTP or HttpClient exception has occurred.
- * 
- * @author Laura Werner
- * 
- * @version $Revision: 480424 $ $Date: 2006-11-29 06:56:49 +0100 (Wed, 29 Nov 2006) $
- */
 public class HttpException extends IOException {
 
     /**
@@ -92,7 +85,6 @@ public class HttpException extends IOException {
      * @return the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      *         if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      * 
-     * @since 3.0
      */
     public Throwable getCause() {
         return cause;
