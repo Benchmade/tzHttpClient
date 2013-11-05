@@ -9,6 +9,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.tmall.search.httpclient.client.HttpRequest.MethodName;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
 import com.tmall.search.httpclient.conn.ContentPaser;
 import com.tmall.search.httpclient.conn.DefaultContentPaser;
@@ -43,8 +44,8 @@ public final class RequestDirector {
 			String url = resp.getHeaderElements().get("Location");
 			String cookie = resp.getHeaderElements().get("Set-Cookie");
 			try {
-				resq = new HttpRequest(url);
-				resq.setCookie(cookie);
+				resq = new HttpRequest(url,MethodName.GET);
+				resq.setCookieValue(cookie);
 				resp = getResponse();
 			} catch (URISyntaxException e) {
 				throw new HttpException("URISyntaxException:" + url,e);

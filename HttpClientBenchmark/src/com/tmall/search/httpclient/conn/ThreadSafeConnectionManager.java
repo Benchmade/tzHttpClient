@@ -165,17 +165,6 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	@Override
-	public void close(HttpHost host, HttpConnection conn) {
-		try {
-			if (conn != null) {
-				conn.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
 	public ConnManagerParams getParam() {
 		return connParam;
 	}

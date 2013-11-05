@@ -19,7 +19,7 @@ public class DefaultContentPaser implements ContentPaser {
 	public byte[] paser(HttpConnection conn, Header header, ByteBuffer readBuffer) throws HttpException {
 		ByteBuffer buffer = readBuffer;
 		byte[] respData = ByteUtil.mergeByteArray(null, buffer.array(), header.getLength(), buffer.limit() - header.getLength());
-		int remainingLength = Integer.parseInt(header.getHeaderElements().get("Content-Length")) - (buffer.limit() - header.getLength());
+		int remainingLength = Integer.parseInt(header.getHeaderElements().get(Header.CONTENT_LEN)) - (buffer.limit() - header.getLength());
 		buffer.clear();
 		while (remainingLength > 0) { // buffer.limit() == buffer.capacity() || sy > 0 如果读取长度和容量一样,可能没有读取完,需要再次读取
 			try {

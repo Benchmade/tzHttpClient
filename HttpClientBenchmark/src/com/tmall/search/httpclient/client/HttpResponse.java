@@ -1,6 +1,5 @@
 package com.tmall.search.httpclient.client;
 
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Map.Entry;
 

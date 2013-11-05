@@ -1,6 +1,6 @@
 package com.tmall.search.httpclient.util;
 
-public final class StatusInfo {
+public final class RequestLineInfo {
 	
 	private String protocolVersion;
 	private int statusCode;

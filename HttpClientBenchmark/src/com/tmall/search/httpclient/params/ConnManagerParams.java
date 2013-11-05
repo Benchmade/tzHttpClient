@@ -5,7 +5,7 @@ public final class ConnManagerParams {//待修改
 	public static enum Options{
 		SO_RCVBUF(1024 * 10),//receive缓存size
 		SO_SNDBUF(1024 * 2),	//send缓冲size
-		CONNECTION_TIMEOUT(200),//连接服务器超时时间
+		CONNECTION_TIMEOUT(500),//连接服务器超时时间
 		WRITE_TIMEOUT(200),//向服务器发送写请求超时
 		READER_TIMROUT(1000),//读取response超时时间
 		CONNECT_TIMEOUT_EXPIRE(10000),//keepAlive超时时间

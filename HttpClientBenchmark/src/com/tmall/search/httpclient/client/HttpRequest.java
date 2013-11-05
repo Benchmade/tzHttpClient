@@ -5,7 +5,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import com.tmall.search.httpclient.conn.HttpHost;
-import com.tmall.search.httpclient.util.HttpUtil;
 
 /**
  * httprequest请求数据描述类
@@ -24,9 +23,9 @@ public class HttpRequest {
 	private URI uriInfo;
 	private byte[] sendData;
 	private HttpHost host;
-	private boolean followRedirects = true;
-	private String cookie = null;
-	private boolean enableCompress = false;
+	private boolean followRedirects = true;//30X redirect
+	private String cookieValue = null;
+	private boolean gzipCompress = false;
 
 	public HttpRequest(String url) throws URISyntaxException, UnsupportedEncodingException {
 		this(url, MethodName.GET);
@@ -43,16 +42,16 @@ public class HttpRequest {
 			sb.append(":");
 			sb.append(uriInfo.getPort());
 		}
-		sb.append(HttpUtil.CRLF);
+		sb.append(Header.CRLF);
 		
-		if (enableCompress) {
-			sb.append("Accept-Encoding: gzip,deflate").append(HttpUtil.CRLF);
+		if (gzipCompress) {
+			sb.append("Accept-Encoding: gzip,deflate").append(Header.CRLF);
 		}
 		
-		if (cookie != null && cookie.trim().length() > 0) {
-			sb.append("Cookie: ").append(cookie).append(HttpUtil.CRLF);
+		if (cookieValue != null && cookieValue.trim().length() > 0) {
+			sb.append("Cookie: ").append(cookieValue).append(Header.CRLF);
 		}
-		sb.append(HttpUtil.CRLF);
+		sb.append(Header.CRLF);
 		sendData = sb.toString().getBytes("US-ASCII");
 	}
 
@@ -64,7 +63,7 @@ public class HttpRequest {
 			sb.append("?");
 			sb.append(uriInfo.getRawQuery());
 		}
-		sb.append(" HTTP/1.1").append(HttpUtil.CRLF);
+		sb.append(" HTTP/1.1").append(Header.CRLF);
 	}
 
 
@@ -84,12 +83,20 @@ public class HttpRequest {
 		this.followRedirects = followRedirects;
 	}
 
-	public String getCookie() {
-		return cookie;
+	public String getCookieValue() {
+		return cookieValue;
 	}
 
-	public void setCookie(String cookie) {
-		this.cookie = cookie;
+	public void setCookieValue(String cookieValue) {
+		this.cookieValue = cookieValue;
+	}
+	
+	public boolean isGzipCompress() {
+		return gzipCompress;
+	}
+
+	public void setGzipCompress(boolean gzipCompress) {
+		this.gzipCompress = gzipCompress;
 	}
 
 	public static void main(String[] args) throws Exception {

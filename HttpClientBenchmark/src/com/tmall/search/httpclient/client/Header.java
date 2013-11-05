@@ -8,13 +8,44 @@ import java.util.Map;
 import org.apache.commons.httpclient.ProtocolException;
 
 import com.tmall.search.httpclient.util.HeaderParser;
-import com.tmall.search.httpclient.util.HttpUtil;
 /**
  * httpheader描述类.未处理302跳转
  * @author xiaolin.mxl
  *
  */
 public class Header {
+	
+	public static final int CR = 13; // <US-ASCII CR, carriage return (13)>
+	public static final int LF = 10; // <US-ASCII LF, linefeed (10)>
+	public static final String CRLF = "\r\n";
+	public static final int SP = 32; // <US-ASCII SP, space (32)>
+	public static final int HT = 9; // <US-ASCII HT, horizontal-tab (9)>
+
+	/** HTTP header definitions */
+	public static final String TRANSFER_ENCODING = "Transfer-Encoding";
+	public static final String CONTENT_LEN = "Content-Length";
+	public static final String CONTENT_TYPE = "Content-Type";
+	public static final String CONTENT_ENCODING = "Content-Encoding";
+	public static final String EXPECT_DIRECTIVE = "Expect";
+	public static final String CONN_DIRECTIVE = "Connection";
+	public static final String TARGET_HOST = "Host";
+	public static final String USER_AGENT = "User-Agent";
+	public static final String DATE_HEADER = "Date";
+	public static final String SERVER_HEADER = "Server";
+
+	/** HTTP expectations */
+	public static final String EXPECT_CONTINUE = "100-continue";
+
+	/** HTTP connection control */
+	public static final String CONN_CLOSE = "Close";
+	public static final String CONN_KEEP_ALIVE = "Keep-Alive";
+
+	/** Transfer encoding definitions */
+	public static final String CHUNK_CODING = "chunked";
+	public static final String IDENTITY_CODING = "identity";
+	
+	
+	
 	private Map<String, String> headerElements;
 	private int statusCode;
 	private String protocolVersion;
@@ -30,13 +61,13 @@ public class Header {
 			throw new ProtocolException("Header Info is null.");
 		}
 		headerElements = HeaderParser.parser(statusList);
-		if ("chunked".equalsIgnoreCase(headerElements.get("Transfer-Encoding"))) {
+		if (CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
 			isChunk = true;
 		}
-		if ("close".equals(headerElements.get("Connection"))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+		if (CONN_CLOSE.equals(headerElements.get(CONN_DIRECTIVE))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
 			isClosed = true;
 		}
-		if ("gzip".equals(headerElements.get("Content-Encoding"))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
 			isCompressed = true;
 		}
 	}
@@ -49,10 +80,10 @@ public class Header {
 	 */
 	private int readHeader(byte[] data, List<String> statusList) throws ProtocolException {
 		int pos = 0;//记录每次header的信息起始位置.
-		int maxPos = data.length - HttpUtil.CRLF.length();
+		int maxPos = data.length - Header.CRLF.length();
 		String line;
 		for (int i = 0; i <= maxPos; i++) {
-			if (data[i] == HttpUtil.CR && data[i + 1] == HttpUtil.LF) {
+			if (data[i] == Header.CR && data[i + 1] == Header.LF) {
 				if (pos == i) {
 					pos = i + 2;
 					break;
@@ -73,10 +104,10 @@ public class Header {
 	
 	private int readHeader(ByteBuffer data, List<String> statusList) throws ProtocolException {
 		int pos = 0;//记录每次header的信息起始位置.
-		int maxPos = data.limit() - HttpUtil.CRLF.length();
+		int maxPos = data.limit() - Header.CRLF.length();
 		String line;
 		for (int i = 0; i <= maxPos; i++) {
-			if (data.get(i) == HttpUtil.CR && data.get(i + 1) == HttpUtil.LF) {
+			if (data.get(i) == Header.CR && data.get(i + 1) == Header.LF) {
 				if (pos == i) {
 					pos = i + 2;
 					break;

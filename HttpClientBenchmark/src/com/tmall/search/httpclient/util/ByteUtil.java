@@ -6,6 +6,8 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 
+import com.tmall.search.httpclient.client.Header;
+
 public final class ByteUtil {
 
 	private static final byte[] CHUNK_END = new byte[] { 10, 13, 10, 13, 48 };
@@ -107,7 +109,7 @@ public final class ByteUtil {
 					chunkInfo.setUnFinishedNum(2 - (length - pos));
 					pos = length;
 				} else {
-					if (buffer[pos] != HttpUtil.CR && buffer[pos + 1] != HttpUtil.LF) {
+					if (buffer[pos] != Header.CR && buffer[pos + 1] != Header.LF) {
 						throw new NullPointerException("this chunk terminated abnormally CRLF");//没有正常结束
 					} else {
 						pos = pos + 2;
@@ -122,7 +124,7 @@ public final class ByteUtil {
 			}
 		}
 		for (int i = pos; i < length - 1; i++) {
-			if (buffer[i] == HttpUtil.CR && buffer[i + 1] == HttpUtil.LF) {
+			if (buffer[i] == Header.CR && buffer[i + 1] == Header.LF) {
 				int chunkSize = Integer.parseInt(new String(buffer, pos, i - pos), 16);
 				if (chunkSize == 0) {
 					if (i + 3 < length) {

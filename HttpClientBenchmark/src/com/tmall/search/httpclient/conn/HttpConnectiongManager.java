@@ -10,7 +10,6 @@ public interface HttpConnectiongManager {
 	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException ,IOException ;
 	public void freeConnection(HttpHost host , HttpConnection conn);
 	public void deleteConnection(HttpHost host, HttpConnection conn) throws IOException;
-	public void close(HttpHost host , HttpConnection conn);
 	public void shutDown() throws IOException;
 	public void closeIdleConnections(long idletime, TimeUnit tunit);
 	public ConnManagerParams getParam();
