@@ -106,7 +106,7 @@ public final class RequestDirector {
 			header = new Header(buffer);
 			ContentPaser paser;
 			if (header.isChunk()) {
-				paser = new ChunkContentPaser();
+				paser = new ChunkContentPaser(conn, header, buffer);
 			} else {
 				paser = new DefaultContentPaser();
 			}
@@ -123,7 +123,7 @@ public final class RequestDirector {
 			}
 		} catch (IOException e) {
 			manager.deleteConnection(resq.getHost(), conn);
-			e.printStackTrace();
+			throw new HttpException("xxx",e);
 		}
 		return hr;
 	}

@@ -6,10 +6,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.httpclient.ProtocolException;
-
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.client.HttpResponse;
+import com.tmall.search.httpclient.util.ProtocolException;
 
 public interface HttpConnection {
 

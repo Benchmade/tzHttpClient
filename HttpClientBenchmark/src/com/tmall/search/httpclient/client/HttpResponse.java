@@ -47,7 +47,7 @@ public class HttpResponse {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(statusCode).append("\n");
+		//sb.append(statusCode).append("\n");
 		for (Entry<String, String> entry : headerElements.entrySet()) {
 			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 		}

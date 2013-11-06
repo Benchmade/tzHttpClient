@@ -26,7 +26,7 @@ public class Benchmark {
 
 	public static void main(String[] args) throws Exception {
 		//nanbaHttp();
-		xiaolinHttp();
+		//xiaolinHttp();
 		//ApacheHttp();
 		//Thread.sleep(10000);
 		

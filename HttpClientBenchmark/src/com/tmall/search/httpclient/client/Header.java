@@ -5,9 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.ProtocolException;
-
 import com.tmall.search.httpclient.util.HeaderParser;
+import com.tmall.search.httpclient.util.ProtocolException;
 /**
  * httpheader描述类.未处理302跳转
  * @author xiaolin.mxl
@@ -64,7 +63,7 @@ public class Header {
 		if (CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
 			isChunk = true;
 		}
-		if (CONN_CLOSE.equals(headerElements.get(CONN_DIRECTIVE))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
 			isClosed = true;
 		}
 		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()

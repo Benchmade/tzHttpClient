@@ -9,9 +9,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.ProtocolException;
-
 import com.tmall.search.httpclient.client.Header;
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.client.HttpResponse;
@@ -19,6 +16,8 @@ import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.ByteUtil;
 import com.tmall.search.httpclient.util.ChunkStateInfo;
+import com.tmall.search.httpclient.util.HttpException;
+import com.tmall.search.httpclient.util.ProtocolException;
 
 public class AIOConnectionImpl implements HttpConnection {
 

@@ -3,7 +3,7 @@ package com.tmall.search.httpclient.params;
 public final class ConnManagerParams {//待修改
 
 	public static enum Options{
-		SO_RCVBUF(1024 * 10),//receive缓存size
+		SO_RCVBUF(512),//receive缓存size
 		SO_SNDBUF(1024 * 2),	//send缓冲size
 		CONNECTION_TIMEOUT(500),//连接服务器超时时间
 		WRITE_TIMEOUT(200),//向服务器发送写请求超时

@@ -52,7 +52,14 @@ public final class ByteUtil {
 	}
 
 	/**
-	 "25\r\nThis is the data in the first chunk\r\n\r\n1A\r\nand this is the second one\r\n0\r\n\r\n"
+	 "  4\r\n
+		Wiki\r\n
+		5\r\n
+		pedia\r\n
+		e\r\n
+		 in\r\n\r\nchunks.\r\n
+		0\r\n
+		\r\n
 	 * @param chunkData
 	 * @return
 	*/
