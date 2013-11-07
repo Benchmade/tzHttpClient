@@ -108,9 +108,9 @@ public final class RequestDirector {
 			if (header.isChunk()) {
 				paser = new ChunkContentPaser(conn, header, buffer);
 			} else {
-				paser = new DefaultContentPaser();
+				paser = new DefaultContentPaser(conn, header, buffer);
 			}
-			byte[] bodyData = paser.paser(conn, header, buffer);
+			byte[] bodyData = paser.paser();
 			if (header.isCompressed()) {
 				bodyData = ByteUtil.unCompress(bodyData);
 			}

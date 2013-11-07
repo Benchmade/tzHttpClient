@@ -51,18 +51,7 @@ public final class ByteUtil {
 		return resultArray;
 	}
 
-	/**
-	 "  4\r\n
-		Wiki\r\n
-		5\r\n
-		pedia\r\n
-		e\r\n
-		 in\r\n\r\nchunks.\r\n
-		0\r\n
-		\r\n
-	 * @param chunkData
-	 * @return
-	*/
+	@Deprecated
 	public static boolean isChunkEnd(ChunkStateInfo chunkInfo, byte[] data, int length) {
 		if (data == null || length == 0) {
 			return true;
@@ -92,6 +81,7 @@ public final class ByteUtil {
 	 * @param length	buffer的长度
 	 * @return
 	 */
+	@Deprecated
 	public static int fillChunkBody(ChunkStateInfo chunkInfo, byte[] buffer, int pos, int length) {
 		if (chunkInfo.getLastBuffRemaining() != null) {//如果上次有没有读取完的剩余byte[],直接合并到当前的byte[]中.
 			buffer = mergeByteArray(chunkInfo.getLastBuffRemaining(), buffer, pos, length - pos);
@@ -152,6 +142,13 @@ public final class ByteUtil {
 		return pos;
 	}
 
+	
+	/**
+	 * http gzip 解压缩
+	 * @param compressData	原始数据
+	 * @return 解压后byteArray
+	 * @throws HttpException
+	 */
 	public static byte[] unCompress(byte[] compressData) throws HttpException{
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(compressData);
 		GZIPInputStream gZIPInputStream = null;

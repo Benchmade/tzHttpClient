@@ -1,5 +1,9 @@
 package com.tmall.search.httpclient.util;
 
+/**
+ * simple byte list , be careful
+ * @author xiaolin.mxl
+ */
 public class ByteList {
 
 	byte[] data ;

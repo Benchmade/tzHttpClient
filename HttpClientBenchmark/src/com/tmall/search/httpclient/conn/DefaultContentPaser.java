@@ -10,13 +10,34 @@ import com.tmall.search.httpclient.util.HttpException;
 
 public class DefaultContentPaser implements ContentPaser {
 
+	private HttpConnection conn;
+	private ByteBuffer readBuffer;
+	private boolean done;
+	private Header header;
+	public DefaultContentPaser(HttpConnection conn, Header header, ByteBuffer readBuffer) {
+		this.conn = conn;
+		this.readBuffer = readBuffer;
+		this.header= header;
+	}
+	
+	@Override
+	public void reset(HttpConnection conn, Header header, ByteBuffer buffer) {
+		this.conn = conn;
+		this.readBuffer = readBuffer;
+		this.header= header;
+		this.done = false;
+	}
+	
 	/**
 	 * 强依赖于Content-Length,可能会有问题. 依赖buffer.limit() == buffer.capacity()这个可能长度正好等于capacity,
 	 * buffer.limit() == buffer.capacity() || sy > 0 时会进入循环.
 	 * buffer.limit() == buffer.capacity() && sy > 0 可能第一次读取没有读取满buffer,但是Content-Length>0
 	 */
 	@Override
-	public byte[] paser(HttpConnection conn, Header header, ByteBuffer readBuffer) throws HttpException {
+	public byte[] paser() throws HttpException {
+		if(done){
+			throw new HttpException("finished reading the buffer ,Please Invoke reset() method");
+		}
 		ByteBuffer buffer = readBuffer;
 		byte[] respData = ByteUtil.mergeByteArray(null, buffer.array(), header.getLength(), buffer.limit() - header.getLength());
 		int remainingLength  = 0;
@@ -36,6 +57,7 @@ public class DefaultContentPaser implements ContentPaser {
 			respData = ByteUtil.mergeByteArray(respData, buffer.array(), buffer.limit());
 			buffer.clear();
 		}
+		done = true;
 		return respData;
 	}
 }

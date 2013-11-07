@@ -7,6 +7,8 @@ import com.tmall.search.httpclient.util.HttpException;
 
 public interface ContentPaser {
 
-	public byte[] paser(HttpConnection conn, Header header, ByteBuffer buffer) throws HttpException;
+	public byte[] paser() throws HttpException;
+	
+	public void reset(HttpConnection conn, Header header, ByteBuffer buffer);
 
 }

@@ -1,5 +1,5 @@
 package com.tmall.search.httpclient.util;
-
+@Deprecated
 public class ChunkStateInfo {
 
 	private byte[] chunkData = null;
