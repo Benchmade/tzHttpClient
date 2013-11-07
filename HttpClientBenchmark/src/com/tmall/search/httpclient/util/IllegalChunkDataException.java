@@ -1,5 +1,8 @@
 package com.tmall.search.httpclient.util;
 
+/**
+ * @author xiaolin.mxl
+ */
 public class IllegalChunkDataException extends HttpException{
 
 	private static final long serialVersionUID = -274004164248182406L;

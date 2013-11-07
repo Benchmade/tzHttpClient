@@ -2,10 +2,10 @@ package com.tmall.search.httpclient.client;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.tmall.search.httpclient.util.HeaderParser;
 import com.tmall.search.httpclient.util.ProtocolException;
 /**
  * httpheader描述类.未处理302跳转
@@ -59,7 +59,7 @@ public class Header {
 		if (length == -1) {
 			throw new ProtocolException("Header Info is null.");
 		}
-		headerElements = HeaderParser.parser(statusList);
+		headerElements = headerConverter(statusList);
 		if (CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
 			isChunk = true;
 		}
@@ -69,6 +69,21 @@ public class Header {
 		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {
 			isCompressed = true;
 		}
+	}
+	
+	private Map<String,String> headerConverter(List<String> statusList) throws ProtocolException {
+		Map<String,String> elements = new HashMap<String, String>();
+		String name, value;
+		for (String headerLine : statusList) {
+				int colon = headerLine.indexOf(':');
+				if (colon < 0) {
+					throw new ProtocolException("Unable to parse header: " + headerLine);
+				}
+				name = headerLine.substring(0, colon).trim();
+				value = headerLine.substring(colon + 1).trim();
+				elements.put(name, value);
+			}
+		return elements;
 	}
 	
 	/**

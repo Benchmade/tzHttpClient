@@ -29,6 +29,12 @@ public class ByteList {
 		}
 	}
 	
+	/**
+	 * 没有做任何条件检查.
+	 * @param array
+	 * @param start
+	 * @param length
+	 */
 	public void add(byte[] array , int start ,int length){
 		check(length);
 		for(int i=start;i<start+length;i++){

@@ -20,6 +20,13 @@ public interface HttpConnection {
 
 	public void close() throws IOException;
 
+	/**
+	 * read once
+	 * @return
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 * @throws TimeoutException
+	 */
 	public ByteBuffer read() throws InterruptedException, ExecutionException, TimeoutException;
 
 	/**
@@ -28,6 +35,12 @@ public interface HttpConnection {
 	 */
 	public boolean isExpired();
 	
+	/**
+	 * 指定过期时间删除过期Conn
+	 * @param idletime
+	 * @param tunit
+	 * @return
+	 */
 	public boolean isExpired(long idletime, TimeUnit tunit);
 
 }
