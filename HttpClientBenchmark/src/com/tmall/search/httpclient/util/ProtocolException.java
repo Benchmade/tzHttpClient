@@ -41,6 +41,11 @@ package com.tmall.search.httpclient.util;
 public class ProtocolException extends HttpException {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2004868968477784257L;
+
+	/**
      * Creates a new ProtocolException with a <tt>null</tt> detail message. 
      */
     public ProtocolException() {

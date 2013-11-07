@@ -14,7 +14,7 @@ import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
 
-public class AIOConnectionImpl implements HttpConnection {
+public class ASyncConnectionImpl implements HttpConnection {
 
 	private AsynchronousSocketChannel client;
 	private final ByteBuffer readbuffer;
@@ -24,7 +24,7 @@ public class AIOConnectionImpl implements HttpConnection {
 	private int executeCount = 0;
 	private long connectTime = Long.MAX_VALUE;
 
-	public AIOConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
+	public ASyncConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
 		this.connParams = connParams;
 		try {
 			client = AsynchronousSocketChannel.open();

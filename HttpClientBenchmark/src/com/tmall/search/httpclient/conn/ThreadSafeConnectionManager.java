@@ -58,7 +58,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			return connection;
 		}
 		if (hostQueue.liveConnNum.intValue() < this.connParam.getValue(Options.CONN_MAX_NUM_PER_HOST)) {//队列内大小和队列外大小和,小于限制数
-			connection = new AIOConnectionImpl(host, connParam);
+			connection = new ASyncConnectionImpl(host, connParam);
 			hostQueue.liveConnNum.incrementAndGet();
 			LOG.debug("Create New Connection for [" + host.toString() + "](" + hostQueue.liveConnNum.intValue() + ")");
 		} else {

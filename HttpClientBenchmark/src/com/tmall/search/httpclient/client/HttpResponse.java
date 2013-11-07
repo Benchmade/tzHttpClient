@@ -1,7 +1,6 @@
 package com.tmall.search.httpclient.client;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.tmall.search.httpclient.util.ByteUtil;
 
@@ -48,10 +47,10 @@ public class HttpResponse {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		//sb.append(statusCode).append("\n");
-		for (Entry<String, String> entry : headerElements.entrySet()) {
+		/*for (Entry<String, String> entry : headerElements.entrySet()) {
 			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 		}
-		sb.append("\n");
+		sb.append("\n");*/
 		sb.append(new String(bodyData));
 		return sb.toString();
 	}
