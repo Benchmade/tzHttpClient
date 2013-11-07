@@ -26,7 +26,9 @@ public class Benchmark {
 
 	public static void main(String[] args) throws Exception {
 		//nanbaHttp();
-		xiaolinHttp();
+		for(int i=0; i<10;i++){
+			xiaolinHttp();
+		}
 		//ApacheHttp();
 		
 		/*HttpClient hc = new HttpClient();
