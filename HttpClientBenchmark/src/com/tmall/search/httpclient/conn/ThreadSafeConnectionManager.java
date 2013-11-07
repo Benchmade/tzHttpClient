@@ -48,7 +48,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws IOException 
 	 */
 	@Override
-	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException, IOException {
+	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException {
 		HttpConnection connection = null;
 		HostConnectionQueue hostQueue = getHostQueue(host, true);
 		if (shutdown) {
@@ -90,7 +90,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	@Override
-	public void closeIdleConnections(long idletime, TimeUnit tunit) {
+	public void closeIdleConnections(long idletime, TimeUnit tunit) throws IOException{
 		long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
 		boolean isOutOfBounds = this.connParam.getValue(Options.MAX_TOTAL_HOST) > pool.size();
 		Enumeration<HttpHost> hosts = pool.keys();
@@ -112,7 +112,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue, HttpHost host) throws IOException {
+	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue, HttpHost host) throws HttpException {
 		HttpConnection connection = null;
 		while ((connection = hostQueue.connQueue.poll()) != null) {
 			if (!connection.isExpired()) {//判断是否过期
@@ -124,9 +124,13 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		return connection;
 	}
 
-	private void deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection, HttpHost host) throws IOException {
+	private void deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection, HttpHost host) {
 		if (connection != null) {
-			connection.close();
+			try {
+				connection.close();
+			} catch (IOException e) {
+				LOG.error("connection close failure", e);
+			}
 		}
 		hostQueue.liveConnNum.decrementAndGet();
 		LOG.debug("Removed Connection [" + host.toString() + "](" + hostQueue.liveConnNum + ")");
@@ -136,7 +140,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * 删除链接,链接过期
 	 */
 	@Override
-	public void deleteConnection(HttpHost host, HttpConnection connection) throws IOException {
+	public void deleteConnection(HttpHost host, HttpConnection connection) throws HttpException {
 		HostConnectionQueue hostQueue = getHostQueue(host, true);
 		this.deleteConnection(hostQueue, connection, host);
 	}
@@ -148,7 +152,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	public void shutDown() throws IOException {
 		shutdown = true;
 		for (Entry<HttpHost, HostConnectionQueue> entry : pool.entrySet()) {
-			LOG.debug("#######################:" + entry.getValue().connQueue.size());
+			LOG.debug(entry.getKey().toString() + " -> " + entry.getValue().connQueue.size());
 			for (HttpConnection conn : entry.getValue().connQueue) {
 				conn.close();
 			}
@@ -179,16 +183,12 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		//这个host 链接在 数量
 		private AtomicInteger liveConnNum = new AtomicInteger();
 
-		public void clearIdle() {
+		public void clearIdle() throws IOException{
 			HttpConnection conn;
 			while ((conn = connQueue.poll()) != null) {
-				try {
-					if (conn.isExpired()) {
-						conn.close();
-						liveConnNum.decrementAndGet();
-					}
-				} catch (IOException e) {
-					LOG.warn("conn clear ", e);
+				if (conn.isExpired()) {
+					conn.close();
+					liveConnNum.decrementAndGet();
 				}
 			}
 		}

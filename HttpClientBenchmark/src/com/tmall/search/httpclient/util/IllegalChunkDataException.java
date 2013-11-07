@@ -1,6 +1,6 @@
 package com.tmall.search.httpclient.util;
 
-public class IllegalChunkDataException extends ProtocolException{
+public class IllegalChunkDataException extends HttpException{
 
 	private static final long serialVersionUID = -274004164248182406L;
 

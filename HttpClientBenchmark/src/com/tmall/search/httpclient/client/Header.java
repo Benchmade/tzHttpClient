@@ -63,10 +63,10 @@ public class Header {
 		if (CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
 			isChunk = true;
 		}
-		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {
 			isClosed = true;
 		}
-		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {//hr.getHeaderElements().get("Connection")!=null && hr.getHeaderElements().get("Connection").equals()
+		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {
 			isCompressed = true;
 		}
 	}

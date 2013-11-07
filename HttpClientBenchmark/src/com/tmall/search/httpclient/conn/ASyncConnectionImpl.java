@@ -77,8 +77,6 @@ public class ASyncConnectionImpl implements HttpConnection {
 
 	@Override
 	public void close() throws IOException {
-		client.shutdownInput();
-		client.shutdownOutput();
 		client.close();
 		client = null;
 	}

@@ -1,6 +1,6 @@
 package com.tmall.search.httpclient.client;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
@@ -36,7 +36,7 @@ public final class RequestDirector {
 		this.resq = resq;
 	}
 
-	public HttpResponse execute() throws IOException {
+	public HttpResponse execute() throws HttpException {
 		HttpResponse resp = getResponse();
 		int redirectNum = 0;
 		while(redirectNum<5 && isRedirectNeeded(resp)){
@@ -47,7 +47,7 @@ public final class RequestDirector {
 				resq = new HttpRequest(url,MethodName.GET);
 				resq.setCookieValue(cookie);
 				resp = getResponse();
-			} catch (URISyntaxException e) {
+			} catch (URISyntaxException | UnsupportedEncodingException e) {
 				throw new HttpException("URISyntaxException:" + url,e);
 			}
 		}
@@ -79,7 +79,7 @@ public final class RequestDirector {
 		} //end of switch
 	}
 	
-	private HttpResponse getResponse() throws IOException {
+	private HttpResponse getResponse() throws HttpException {
 		int retryNum = 0;
 		conn = manager.getConnectionWithTimeout(resq.getHost());
 		HttpResponse hr = null;
@@ -121,7 +121,7 @@ public final class RequestDirector {
 			} else {
 				manager.freeConnection(resq.getHost(), conn);
 			}
-		} catch (IOException e) {
+		} catch (HttpException e) {
 			manager.deleteConnection(resq.getHost(), conn);
 			throw new HttpException("xxx",e);
 		}
