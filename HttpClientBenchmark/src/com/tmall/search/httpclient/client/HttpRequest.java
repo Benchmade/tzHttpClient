@@ -7,7 +7,7 @@ import java.net.URISyntaxException;
 import com.tmall.search.httpclient.conn.HttpHost;
 
 /**
- * httprequest请求数据描述类
+ * httprequest请求数据描述类,没有写param类定义可配置参数.
  * @author xiaolin.mxl
  *
  */

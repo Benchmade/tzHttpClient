@@ -39,16 +39,16 @@ public final class RequestDirector {
 	public HttpResponse execute() throws HttpException {
 		HttpResponse resp = getResponse();
 		int redirectNum = 0;
-		while(redirectNum<5 && isRedirectNeeded(resp)){
+		while (redirectNum < 5 && isRedirectNeeded(resp)) {
 			redirectNum++;
 			String url = resp.getHeaderElements().get("Location");
 			String cookie = resp.getHeaderElements().get("Set-Cookie");
 			try {
-				resq = new HttpRequest(url,MethodName.GET);
+				resq = new HttpRequest(url, MethodName.GET);
 				resq.setCookieValue(cookie);
 				resp = getResponse();
 			} catch (URISyntaxException | UnsupportedEncodingException e) {
-				throw new HttpException("URISyntaxException:" + url,e);
+				throw new HttpException("URISyntaxException:" + url, e);
 			}
 		}
 		return resp;
@@ -60,7 +60,7 @@ public final class RequestDirector {
 	 * @return
 	 */
 	private boolean isRedirectNeeded(final HttpResponse resp) {
-		if(resp.getStatusCode()==HttpStatus.SC_OK){
+		if (resp.getStatusCode() == HttpStatus.SC_OK) {
 			return false;
 		}
 		switch (resp.getStatusCode()) {
@@ -78,7 +78,7 @@ public final class RequestDirector {
 			return false;
 		} //end of switch
 	}
-	
+
 	private HttpResponse getResponse() throws HttpException {
 		int retryNum = 0;
 		conn = manager.getConnectionWithTimeout(resq.getHost());
@@ -123,7 +123,7 @@ public final class RequestDirector {
 			}
 		} catch (HttpException e) {
 			manager.deleteConnection(resq.getHost(), conn);
-			throw new HttpException("xxx",e);
+			throw new HttpException("Read Response error", e);
 		}
 		return hr;
 	}
