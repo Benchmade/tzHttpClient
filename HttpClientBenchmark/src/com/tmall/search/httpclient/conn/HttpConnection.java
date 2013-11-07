@@ -7,8 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.tmall.search.httpclient.client.HttpRequest;
-import com.tmall.search.httpclient.client.HttpResponse;
-import com.tmall.search.httpclient.util.ProtocolException;
 
 public interface HttpConnection {
 
@@ -19,8 +17,6 @@ public interface HttpConnection {
 	 * @throws Exception
 	 */
 	public void sendRequest(HttpRequest method) throws InterruptedException, ExecutionException, TimeoutException;
-
-	public HttpResponse readResp() throws InterruptedException, ExecutionException, TimeoutException, ProtocolException;
 
 	public void close() throws IOException;
 
