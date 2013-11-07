@@ -45,7 +45,7 @@ public class HttpRequest {
 		sb.append(Header.CRLF);
 		
 		if (gzipCompress) {
-			sb.append("Accept-Encoding: gzip,deflate").append(Header.CRLF);
+			sb.append("Accept-Encoding: gzip").append(Header.CRLF);
 		}
 		
 		if (cookieValue != null && cookieValue.trim().length() > 0) {

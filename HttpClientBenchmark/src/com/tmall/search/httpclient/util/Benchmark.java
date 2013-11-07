@@ -86,7 +86,7 @@ public class Benchmark {
 
 		@Override
 		public void run() {
-			for (int j = 0; j < 10000; j++) {
+			for (int j = 0; j < 20000; j++) {
 				HttpRequest req;
 				try {
 					//req = new HttpRequest("http://10.232.43.8:8000/qp?s=relasearchmall&c=2&src=tmall-search_10.72.87.152&k=nike");

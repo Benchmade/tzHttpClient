@@ -11,6 +11,10 @@ import com.tmall.search.httpclient.util.ChunkContext;
 import com.tmall.search.httpclient.util.HttpException;
 import com.tmall.search.httpclient.util.IllegalChunkDataException;
 
+/**
+ * chunk paser
+ * @author xiaolin.mxl
+ */
 public class ChunkContentPaser implements ContentPaser {
 
 	public ChunkContentPaser(HttpConnection conn, Header header, ByteBuffer readBuffer) {
@@ -35,12 +39,12 @@ public class ChunkContentPaser implements ContentPaser {
 	}
 
 	public byte[] paser() throws HttpException {
-		if(done){
+		if (done) {
 			throw new HttpException("finished reading the buffer ,Please Invoke reset() method");
 		}
 		ChunkContext csi = new ChunkContext();
 		int chunkLength = -1;
-		while (chunkLength != 0){
+		while (chunkLength != 0) {
 			chunkLength = nextChunkLength();
 			csi.setReadLength(chunkLength);
 			readNextChunkData(csi);
@@ -58,7 +62,7 @@ public class ChunkContentPaser implements ContentPaser {
 					mark = 13;
 					pos13 = cursor;
 				} else if (readBuffer.get(cursor) == Header.LF) {
-					if (mark == 13 && (cursor - pos13 == 1 || cursor == 0)) {
+					if (mark == 13 && (cursor - pos13 == 1 || cursor == 0)) { //if x,13,10 || x,13 next-> 10,x
 						String pasString;
 						if (cursor < 2) {//current chunk data "13,10,x,x,x,x" or "10,x,x,x"
 							pasString = new String(snippet.array());
@@ -74,7 +78,7 @@ public class ChunkContentPaser implements ContentPaser {
 				}
 			}
 			int saveLength;
-			if (mark == 13) {
+			if (mark == 13) { //remove suffix CR
 				saveLength = readBuffer.limit() - pos - 1; //if mark==13 current chunk "x,x,13"
 			} else {
 				saveLength = readBuffer.limit() - pos;// "x,x" next-> "x,x,13,10,x"
@@ -89,7 +93,7 @@ public class ChunkContentPaser implements ContentPaser {
 		if (pos >= readBuffer.limit()) {
 			readNextChunk();
 		}
-		if (csi.getRemaining() > 0) {
+		if (csi.getRemaining() > 0) { //match perfix
 			int remaining = csi.getRemaining();
 			for (int i = 2 - csi.getRemaining(); i <= remaining; i++) {
 				if (terminated[i] != readBuffer.get(pos++)) {
@@ -100,7 +104,7 @@ public class ChunkContentPaser implements ContentPaser {
 			}
 			csi.setRemaining(remaining);
 		}
-		if (csi.getReadLength() > readBuffer.limit() - pos) {
+		if (csi.getReadLength() > readBuffer.limit() - pos) {//copy all
 			csi.setChunkData(ByteUtil.mergeByteArray(csi.getChunkData(), readBuffer.array(), pos, readBuffer.limit() - pos));
 			csi.setReadLength(csi.getReadLength() - (readBuffer.limit() - pos));
 			pos = readBuffer.limit();
@@ -112,13 +116,13 @@ public class ChunkContentPaser implements ContentPaser {
 				csi.setReadLength(-1);
 				if (pos + 2 <= readBuffer.limit()) {
 					if (readBuffer.get(pos) == Header.CR && readBuffer.get(pos + 1) == Header.LF) {
-						pos += 2;
+						pos += 2; //pos step over CRLF
 					} else {
 						throw new IllegalChunkDataException("Not properly terminated by CRLF");
 					}
 				} else {
 					int finsh = 0;
-					for (; pos < readBuffer.limit(); pos++) {
+					for (; pos < readBuffer.limit(); pos++) { //match suffix
 						if (terminated[finsh++] != readBuffer.get(pos)) {
 							throw new IllegalChunkDataException("Not properly terminated by CRLF");
 						}
@@ -137,5 +141,5 @@ public class ChunkContentPaser implements ContentPaser {
 		this.pos = header.getLength();
 		this.done = false;
 	}
-	
+
 }

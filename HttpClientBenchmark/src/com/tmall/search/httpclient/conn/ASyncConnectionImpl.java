@@ -14,6 +14,10 @@ import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
 
+/**
+ * Async impl
+ * @author xiaolin.mxl
+ */
 public class ASyncConnectionImpl implements HttpConnection {
 
 	private AsynchronousSocketChannel client;
