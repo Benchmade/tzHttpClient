@@ -25,6 +25,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 	private final ByteBuffer writebuffer;
 	private ConnManagerParams connParams;
 	//当前conn链接执行的次数.
+	@Deprecated
 	private int executeCount = 0;
 	private long connectTime = Long.MAX_VALUE;
 
@@ -104,8 +105,4 @@ public class ASyncConnectionImpl implements HttpConnection {
 			return false;
 		}
 	}
-
-	public static void main(String[] args) throws Exception {
-	}
-
 }

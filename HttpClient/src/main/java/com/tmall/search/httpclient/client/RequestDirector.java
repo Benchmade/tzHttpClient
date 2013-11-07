@@ -79,6 +79,11 @@ public final class RequestDirector {
 		} //end of switch
 	}
 
+	/**
+	 * 一次http请求
+	 * @return
+	 * @throws HttpException
+	 */
 	private HttpResponse getResponse() throws HttpException {
 		int retryNum = 0;
 		conn = manager.getConnectionWithTimeout(resq.getHost());

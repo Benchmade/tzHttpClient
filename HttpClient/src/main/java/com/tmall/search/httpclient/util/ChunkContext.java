@@ -1,5 +1,9 @@
 package com.tmall.search.httpclient.util;
 
+/**
+ * 存储chunkcontext信息
+ * @author xiaolin.mxl
+ */
 public class ChunkContext {
 
 	private byte[] chunkData = null;

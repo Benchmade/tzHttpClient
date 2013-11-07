@@ -86,36 +86,6 @@ public class Header {
 		return elements;
 	}
 	
-	/**
-	 * 填充header信息的list,同时返回header信息结束的位置.
-	 * @param data 请求返回数据.
-	 * @param statusList	待fill的集合.
-	 * @return	返回header结束的位置.
-	 */
-	private int readHeader(byte[] data, List<String> statusList) throws ProtocolException {
-		int pos = 0;//记录每次header的信息起始位置.
-		int maxPos = data.length - Header.CRLF.length();
-		String line;
-		for (int i = 0; i <= maxPos; i++) {
-			if (data[i] == Header.CR && data[i + 1] == Header.LF) {
-				if (pos == i) {
-					pos = i + 2;
-					break;
-				}
-				line = new String(data, pos, i - pos);
-				if (pos == 0) {
-					paserRequestLine(line,data);
-				} else {
-					statusList.add(line);
-				}
-				pos = i + 2;
-				i++;
-			}
-		}
-		return pos;
-	}
-	
-	
 	private int readHeader(ByteBuffer data, List<String> statusList) throws ProtocolException {
 		int pos = 0;//记录每次header的信息起始位置.
 		int maxPos = data.limit() - Header.CRLF.length();
