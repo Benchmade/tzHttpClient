@@ -8,7 +8,7 @@ import java.util.Map;
 
 import com.tmall.search.httpclient.util.ProtocolException;
 /**
- * httpheader描述类.未处理302跳转
+ * httpheader描述类.
  * @author xiaolin.mxl
  *
  */

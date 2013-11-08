@@ -13,7 +13,7 @@ import com.tmall.search.httpclient.compress.GzipDecoder;
  */
 public final class RequestParams {
 
-	public static boolean enableCompass = false;
+	public static boolean enableCompass = true;
 	public static boolean enableFollowRedirects = true;//30X redirect
 	public static ProtocolVersion protocolVersion = ProtocolVersion.HTTP11;
 	public static List<AcceptDecoder> inOrderAcceptEncodingList = new ArrayList<AcceptDecoder>();

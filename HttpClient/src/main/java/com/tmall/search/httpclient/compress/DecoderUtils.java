@@ -30,13 +30,13 @@ public final class DecoderUtils {
 		return acceptDecoder;
 	}
 	
-	public String acceptEncodingStr(List<AcceptDecoder> acceptEncodingList){
+	public static String acceptEncodingStr(List<AcceptDecoder> acceptEncodingList){
 		StringBuilder sb = new StringBuilder(4);
 		for(int i=0;i<acceptEncodingList.size();i++){
 			if(i==0){
-				sb.append(acceptEncodingList.get(i));
+				sb.append(acceptEncodingList.get(i).getAlgorithmName());
 			}else{
-				sb.append(",").append(acceptEncodingList.get(i));
+				sb.append(",").append(acceptEncodingList.get(i).getAlgorithmName());
 			}
 		}
 		return sb.toString();

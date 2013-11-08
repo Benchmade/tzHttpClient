@@ -49,7 +49,7 @@ public final class RequestDirector {
 				resq = new HttpRequest(url, MethodName.GET);
 				resq.setCookieValue(cookie);
 				resp = getResponse();
-			} catch (URISyntaxException | UnsupportedEncodingException e) {
+			} catch (URISyntaxException e) {
 				throw new HttpException("URISyntaxException:" + url, e);
 			}
 		}

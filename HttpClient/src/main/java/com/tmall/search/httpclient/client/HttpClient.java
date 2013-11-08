@@ -34,12 +34,11 @@ public class HttpClient {
 		//Thread.sleep(10000);
 		HttpClient h = new HttpClient();
 		long s = System.currentTimeMillis();
-		for(int i=0;i<10000;i++){
-			HttpRequest req = new HttpRequest("http://localhost:8080/BenchmadeWeb/xxx?q="+i);
+		//for(int i=0;i<10000;i++){
+			HttpRequest req = new HttpRequest("http://news.163.com/special/zhikubaogao/");
 			HttpResponse hr = h.executeMethod(req);
-			System.out.println(i);
-			//System.out.println(hr.toString());
-		}
+			System.out.println(hr.toString());
+		//}
 		System.out.println(System.currentTimeMillis()-s);
 		h.close();
 		

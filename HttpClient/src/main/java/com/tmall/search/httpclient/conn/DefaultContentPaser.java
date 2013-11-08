@@ -29,11 +29,6 @@ public class DefaultContentPaser implements ContentPaser {
 		this.done = false;
 	}
 
-	/**
-	 * 强依赖于Content-Length,可能会有问题. 依赖buffer.limit() == buffer.capacity()这个可能长度正好等于capacity,
-	 * buffer.limit() == buffer.capacity() || sy > 0 时会进入循环.
-	 * buffer.limit() == buffer.capacity() && sy > 0 可能第一次读取没有读取满buffer,但是Content-Length>0
-	 */
 	@Override
 	public byte[] paser() throws HttpException {
 		if (done) {
@@ -47,7 +42,7 @@ public class DefaultContentPaser implements ContentPaser {
 		int remainingLength = 0;
 		remainingLength = Integer.parseInt(header.getHeaderElements().get(Header.CONTENT_LEN)) - (buffer.limit() - header.getLength());
 		buffer.clear();
-		while (remainingLength > 0) { // buffer.limit() == buffer.capacity() || sy > 0 如果读取长度和容量一样,可能没有读取完,需要再次读取
+		while (remainingLength > 0) {
 			try {
 				buffer = conn.read();
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {

@@ -1,6 +1,7 @@
 package com.tmall.search.httpclient.conn;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
+import com.tmall.search.httpclient.util.ByteUtil;
 import com.tmall.search.httpclient.util.HttpException;
 
 /**
@@ -24,9 +26,9 @@ public class ASyncConnectionImpl implements HttpConnection {
 	private final ByteBuffer readbuffer;
 	private final ByteBuffer writebuffer;
 	private ConnManagerParams connParams;
-	//当前conn链接执行的次数.
+
 	@Deprecated
-	private int executeCount = 0;
+	private int executeCount = 0; //当前conn链接执行的次数.
 	private long connectTime = Long.MAX_VALUE;
 
 	public ASyncConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
@@ -57,25 +59,29 @@ public class ASyncConnectionImpl implements HttpConnection {
 	}
 
 	@Override
-	public void sendRequest(HttpRequest method) throws InterruptedException, ExecutionException, TimeoutException {
+	public void sendRequest(HttpRequest method) throws HttpException {
 		writebuffer.clear();
-		byte[] requestData = method.getSendData();
-		connectTime = System.currentTimeMillis();//设置过期检测时间
-		if (requestData.length > writebuffer.capacity()) {
-			int sy = requestData.length;
-			int pos = 0;
-			while (sy > 0) {
-				sy = sy - writebuffer.capacity();
-				writebuffer.put(method.getSendData(), pos, sy > 0 ? writebuffer.capacity() : writebuffer.capacity() + sy);
+		try {
+			byte[] requestData = ByteUtil.assemblyRequestBody(method.getRequestLine(), method.getHeaderElements());
+			connectTime = System.currentTimeMillis();//设置过期检测时间
+			if (requestData.length > writebuffer.capacity()) {
+				int sy = requestData.length;
+				int pos = 0;
+				while (sy > 0) {
+					sy = sy - writebuffer.capacity();
+					writebuffer.put(requestData, pos, sy > 0 ? writebuffer.capacity() : writebuffer.capacity() + sy);
+					writebuffer.flip();
+					client.write(writebuffer).get(this.connParams.getValue(Options.WRITE_TIMEOUT), TimeUnit.MILLISECONDS);
+					writebuffer.clear();
+					pos += writebuffer.capacity();
+				}
+			} else {
+				writebuffer.put(requestData);
 				writebuffer.flip();
 				client.write(writebuffer).get(this.connParams.getValue(Options.WRITE_TIMEOUT), TimeUnit.MILLISECONDS);
-				writebuffer.clear();
-				pos += writebuffer.capacity();
 			}
-		} else {
-			writebuffer.put(method.getSendData());
-			writebuffer.flip();
-			client.write(writebuffer).get(this.connParams.getValue(Options.WRITE_TIMEOUT), TimeUnit.MILLISECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException | UnsupportedEncodingException e) {
+			throw new HttpException("Failure to send data.", e);
 		}
 		writebuffer.clear();
 	}

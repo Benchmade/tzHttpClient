@@ -1991,7 +1991,6 @@ public abstract class HttpMethodBase implements HttpMethod {
         } while(true);
 
         //create the status line from the status string
-        System.out.println("+++" + s);
         statusLine = new StatusLine(s);
 
         //check for a valid HTTP-Version
@@ -2185,7 +2184,6 @@ public abstract class HttpMethodBase implements HttpMethod {
                 Wire.HEADER_WIRE.output(s);
             }
             conn.print(s, charset);
-            System.out.println("---"+s);
         }
     }
 
@@ -2217,7 +2215,6 @@ public abstract class HttpMethodBase implements HttpMethod {
             Wire.HEADER_WIRE.output(requestLine);
         }
         conn.print(requestLine, getParams().getHttpElementCharset());
-        System.out.println("----" + requestLine);
     }
 
     /**

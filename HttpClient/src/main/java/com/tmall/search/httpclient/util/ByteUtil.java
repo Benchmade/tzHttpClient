@@ -1,8 +1,14 @@
 package com.tmall.search.httpclient.util;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.tmall.search.httpclient.client.Header;
+import com.tmall.search.httpclient.client.HttpRequest;
 
 public final class ByteUtil {
-
+	
 	/**
 	 * 合并2个byteArray,读取数据时,可能一个bytebuffer不能完全读取完,使用这个方法,合并多次读取到的byte
 	 * @param data			原有数组
@@ -40,6 +46,16 @@ public final class ByteUtil {
 			}
 		}
 		return resultArray;
+	}
+
+	public static byte[] assemblyRequestBody(String requestLine, Map<String,String> headerElements) throws UnsupportedEncodingException {
+		StringBuilder sb = new StringBuilder(8);
+		sb.append(requestLine);
+		for(Entry<String,String> entry: headerElements.entrySet()){
+			sb.append(entry.getKey()).append(HttpRequest.COLON).append(entry.getValue()).append(Header.CRLF);
+		}
+		sb.append(Header.CRLF);
+		return sb.toString().getBytes("US-ASCII");
 	}
 
 }

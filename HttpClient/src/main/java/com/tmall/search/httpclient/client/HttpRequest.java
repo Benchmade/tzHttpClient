@@ -3,12 +3,15 @@ package com.tmall.search.httpclient.client;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.tmall.search.httpclient.compress.AcceptDecoder;
+import com.tmall.search.httpclient.compress.DecoderUtils;
 import com.tmall.search.httpclient.conn.HttpHost;
 import com.tmall.search.httpclient.params.RequestParams;
+import com.tmall.search.httpclient.util.ByteUtil;
 
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.
@@ -16,7 +19,11 @@ import com.tmall.search.httpclient.params.RequestParams;
  *
  */
 public class HttpRequest {
-	
+
+	public static final String ACCEPT_ENCODING = "Accept-Encoding";
+	public static final String HOST = "Host";
+	public static final String COLON = ": ";
+
 	/**
 	 * @author xiaolin.mxl
 	 */
@@ -27,26 +34,27 @@ public class HttpRequest {
 			return this.name().toUpperCase();
 		}
 	}
-	
+
 	/**
 	 * 协议版本
 	 * @author xiaolin.mxl
 	 */
 	public static enum ProtocolVersion {
-		HTTP11("HTTP/1.1"),
-		HTTP10("HTTP/1.0");
-		
+		HTTP11("HTTP/1.1"), HTTP10("HTTP/1.0");
+
 		private String version;
+
 		private ProtocolVersion(String version) {
 			this.version = version;
 		}
+
 		public String getVersion() {
 			return this.version;
 		}
 	}
 
 	private URI uriInfo;
-	private byte[] sendData;
+	private byte[] reqBody;
 	private HttpHost host;
 	private String cookieValue = null;
 	//默认设置全局固定参数,调用set方法,覆盖全局设置.
@@ -54,36 +62,25 @@ public class HttpRequest {
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
 	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
 	private List<AcceptDecoder> inOrderAcceptEncodingList = RequestParams.inOrderAcceptEncodingList;
-	
+	private Map<String, String> headerElements = new HashMap<String, String>(8);
+	private String requestLine;
+
 	public HttpRequest(String url) throws URISyntaxException, UnsupportedEncodingException {
 		this(url, MethodName.GET);
 	}
 
-	public HttpRequest(String url, MethodName methodName) throws URISyntaxException, UnsupportedEncodingException {
+	public HttpRequest(String url, MethodName methodName) throws URISyntaxException {
 		uriInfo = new URI(url);
 		host = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
-		StringBuilder sb = new StringBuilder();
-		writeRequestLine(sb,methodName);
-		
-		sb.append("Host: ").append(uriInfo.getHost());
-		if (uriInfo.getPort() != -1) {
-			sb.append(":");
-			sb.append(uriInfo.getPort());
-		}
-		sb.append(Header.CRLF);
-		
-		if (compress) {
-			sb.append("Accept-Encoding: gzip").append(Header.CRLF);
-		}
-		
-		if (cookieValue != null && cookieValue.trim().length() > 0) {
-			sb.append("Cookie: ").append(cookieValue).append(Header.CRLF);
-		}
-		sb.append(Header.CRLF);
-		sendData = sb.toString().getBytes("US-ASCII");
+		writeRequestLine(methodName);
 	}
 
-	private void writeRequestLine(StringBuilder sb, MethodName methodName) {
+	public void addEntry(String key, String value) {
+		headerElements.put(key, value);
+	}
+
+	private void writeRequestLine(MethodName methodName) {
+		StringBuilder sb = new StringBuilder(16);
 		String reuqestMethod = methodName.toString();
 		sb.append(reuqestMethod).append(" ");//GET 
 		sb.append(uriInfo.getPath());
@@ -92,34 +89,67 @@ public class HttpRequest {
 			sb.append(uriInfo.getRawQuery());
 		}
 		sb.append(" ").append(protocolVersion.version).append(Header.CRLF);
+		sb.append(HOST).append(COLON).append(uriInfo.getHost());
+		if (uriInfo.getPort() != -1) {
+			sb.append(":");
+			sb.append(uriInfo.getPort());
+		}
+		sb.append(Header.CRLF);
+		requestLine = sb.toString();
 	}
 
-
-	public byte[] getSendData() {
-		return sendData;
+	public void enableCompress(List<AcceptDecoder> customDecodeList) {
+		this.inOrderAcceptEncodingList = customDecodeList;
+		headerElements.put(ACCEPT_ENCODING, DecoderUtils.acceptEncodingStr(customDecodeList));
 	}
+
+	public void enableGzipCompress() {
+		if (this.inOrderAcceptEncodingList != RequestParams.inOrderAcceptEncodingList) {
+			this.inOrderAcceptEncodingList = RequestParams.inOrderAcceptEncodingList;
+		}
+		this.enableCompress(RequestParams.inOrderAcceptEncodingList);
+	}
+
+	public Map<String, String> getHeaderElements() {
+		return headerElements;
+	}
+
+	public String getRequestLine() {
+		return requestLine;
+	}
+
+	public byte[] getReqBody() {
+		return reqBody;
+	}
+
 	public HttpHost getHost() {
 		return host;
 	}
+
 	public boolean isFollowRedirects() {
 		return followRedirects;
 	}
+
 	public void setFollowRedirects(boolean followRedirects) {
 		this.followRedirects = followRedirects;
 	}
+
 	public String getCookieValue() {
 		return cookieValue;
 	}
+
 	public void setCookieValue(String cookieValue) {
 		this.cookieValue = cookieValue;
 	}
+
 	public boolean isCompress() {
 		return compress;
 	}
+
 	public void setCompress(boolean compress) {
 		this.compress = compress;
 	}
-	
+
 	public ProtocolVersion getProtocolVersion() {
 		return protocolVersion;
 	}
@@ -138,7 +168,8 @@ public class HttpRequest {
 
 	public static void main(String[] args) throws Exception {
 		HttpRequest m = new HttpRequest("http://www.amazon.cn/b/ref=sa_menu_softwa_l3_b811142051?ie=UTF8&node=811142051");
-		System.out.println(new String(m.getSendData()));
+		m.enableGzipCompress();
+		System.out.println(new String(ByteUtil.assemblyRequestBody(m.getRequestLine(), m.getHeaderElements())));
 	}
 
 }

@@ -25,10 +25,8 @@ public class Benchmark {
 
 	public static void main(String[] args) throws Exception {
 		//nanbaHttp();
-		for(int i=0; i<10;i++){
-			xiaolinHttp();
-		}
-		//ApacheHttp();
+		//xiaolinHttp();
+		ApacheHttp();
 		
 		/*HttpClient hc = new HttpClient();
 		try {
@@ -137,7 +135,7 @@ public class Benchmark {
 
 		@Override
 		public void run() {
-			for (int j = 3000; j < 5000; j++) {
+			for (int j = 0; j < 20000; j++) {
 				HttpRequest req;
 				try {
 					HttpMethod method = new GetMethod("http://localhost:8080/BenchmadeWeb/xxx?q=" + j);
@@ -199,7 +197,7 @@ public class Benchmark {
 
 		@Override
 		public void run() {
-			for (int j =0; j < 10000; j++) {
+			for (int j =0; j < 20000; j++) {
 				com.taobao.tmallsearch.httpasync.client.entity.HttpRequest request = new com.taobao.tmallsearch.httpasync.client.entity.HttpRequest("http://localhost:8080/BenchmadeWeb/xxx?q=" + j);
 				//com.taobao.tmallsearch.httpasync.client.entity.HttpRequest request = new com.taobao.tmallsearch.httpasync.client.entity.HttpRequest("http://10.232.43.8:8000/qp?s=relasearchmall&c=2&src=tmall-search_10.72.87.152&k=nike");
 

@@ -48,15 +48,15 @@ public class ChunkContentPaser implements ContentPaser {
 		ChunkContext csi = new ChunkContext();
 		int chunkLength = -1;
 		while (chunkLength != 0) {
-			chunkLength = nextChunkLength();
+			chunkLength = nextSize();
 			csi.setReadLength(chunkLength);
-			readNextChunkData(csi);
+			nextData(csi);
 		}
 		done = true;
 		return csi.getChunkData();
 	}
 
-	private int nextChunkLength() throws HttpException {
+	private int nextSize() throws HttpException {
 		ByteList snippet = new ByteList(); //save the last time not handle byteArray
 		int length = -1, mark = 0, pos13 = 0;
 		do {
@@ -92,7 +92,7 @@ public class ChunkContentPaser implements ContentPaser {
 		return length;
 	}
 
-	private void readNextChunkData(ChunkContext csi) throws HttpException {
+	private void nextData(ChunkContext csi) throws HttpException {
 		if (pos >= readBuffer.limit()) {
 			readNextChunk();
 		}
@@ -111,7 +111,7 @@ public class ChunkContentPaser implements ContentPaser {
 			csi.setChunkData(ByteUtil.mergeByteArray(csi.getChunkData(), readBuffer.array(), pos, readBuffer.limit() - pos));
 			csi.setReadLength(csi.getReadLength() - (readBuffer.limit() - pos));
 			pos = readBuffer.limit();
-			readNextChunkData(csi);
+			nextData(csi);
 		} else {
 			if (csi.getReadLength() >= 0) {
 				csi.setChunkData(ByteUtil.mergeByteArray(csi.getChunkData(), readBuffer.array(), pos, csi.getReadLength()));
@@ -131,7 +131,7 @@ public class ChunkContentPaser implements ContentPaser {
 						}
 					}
 					csi.setRemaining(2 - finsh);
-					readNextChunkData(csi);
+					nextData(csi);
 				}
 			}
 		}
