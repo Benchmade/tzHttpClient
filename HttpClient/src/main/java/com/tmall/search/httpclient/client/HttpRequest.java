@@ -3,8 +3,12 @@ package com.tmall.search.httpclient.client;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.tmall.search.httpclient.compress.AcceptDecoder;
 import com.tmall.search.httpclient.conn.HttpHost;
+import com.tmall.search.httpclient.params.RequestParams;
 
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.
@@ -12,6 +16,10 @@ import com.tmall.search.httpclient.conn.HttpHost;
  *
  */
 public class HttpRequest {
+	
+	/**
+	 * @author xiaolin.mxl
+	 */
 	public static enum MethodName {
 		GET, POST;
 		@Override
@@ -19,14 +27,34 @@ public class HttpRequest {
 			return this.name().toUpperCase();
 		}
 	}
+	
+	/**
+	 * 协议版本
+	 * @author xiaolin.mxl
+	 */
+	public static enum ProtocolVersion {
+		HTTP11("HTTP/1.1"),
+		HTTP10("HTTP/1.0");
+		
+		private String version;
+		private ProtocolVersion(String version) {
+			this.version = version;
+		}
+		public String getVersion() {
+			return this.version;
+		}
+	}
 
 	private URI uriInfo;
 	private byte[] sendData;
 	private HttpHost host;
-	private boolean followRedirects = true;//30X redirect
 	private String cookieValue = null;
-	private boolean gzipCompress = false;
-
+	//默认设置全局固定参数,调用set方法,覆盖全局设置.
+	private boolean compress = RequestParams.enableCompass;
+	private boolean followRedirects = RequestParams.enableFollowRedirects;
+	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
+	private List<AcceptDecoder> inOrderAcceptEncodingList = RequestParams.inOrderAcceptEncodingList;
+	
 	public HttpRequest(String url) throws URISyntaxException, UnsupportedEncodingException {
 		this(url, MethodName.GET);
 	}
@@ -44,7 +72,7 @@ public class HttpRequest {
 		}
 		sb.append(Header.CRLF);
 		
-		if (gzipCompress) {
+		if (compress) {
 			sb.append("Accept-Encoding: gzip").append(Header.CRLF);
 		}
 		
@@ -63,40 +91,49 @@ public class HttpRequest {
 			sb.append("?");
 			sb.append(uriInfo.getRawQuery());
 		}
-		sb.append(" HTTP/1.1").append(Header.CRLF);
+		sb.append(" ").append(protocolVersion.version).append(Header.CRLF);
 	}
 
 
 	public byte[] getSendData() {
 		return sendData;
 	}
-
 	public HttpHost getHost() {
 		return host;
 	}
-
 	public boolean isFollowRedirects() {
 		return followRedirects;
 	}
-
 	public void setFollowRedirects(boolean followRedirects) {
 		this.followRedirects = followRedirects;
 	}
-
 	public String getCookieValue() {
 		return cookieValue;
 	}
-
 	public void setCookieValue(String cookieValue) {
 		this.cookieValue = cookieValue;
 	}
+	public boolean isCompress() {
+		return compress;
+	}
+	public void setCompress(boolean compress) {
+		this.compress = compress;
+	}
 	
-	public boolean isGzipCompress() {
-		return gzipCompress;
+	public ProtocolVersion getProtocolVersion() {
+		return protocolVersion;
 	}
 
-	public void setGzipCompress(boolean gzipCompress) {
-		this.gzipCompress = gzipCompress;
+	public void setProtocolVersion(ProtocolVersion protocolVersion) {
+		this.protocolVersion = protocolVersion;
+	}
+
+	public List<AcceptDecoder> getInOrderAcceptEncodingList() {
+		return inOrderAcceptEncodingList;
+	}
+
+	public void setInOrderAcceptEncodingList(List<AcceptDecoder> inOrderAcceptEncodingList) {
+		this.inOrderAcceptEncodingList = inOrderAcceptEncodingList;
 	}
 
 	public static void main(String[] args) throws Exception {

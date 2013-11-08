@@ -20,7 +20,6 @@ import com.taobao.tmallsearch.httpasync.client.HttpAsyncClient;
 import com.taobao.tmallsearch.httpasync.client.impl.HttpAsyncClientImpl;
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.client.HttpResponse;
-import com.tmall.search.httpclient.client.TmallHttpClient;
 
 public class Benchmark {
 
@@ -57,7 +56,7 @@ public class Benchmark {
 	}
 
 	public static void xiaolinHttp() throws Exception {
-		TmallHttpClient tmallHttpClient = new TmallHttpClient();
+		com.tmall.search.httpclient.client.HttpClient tmallHttpClient = new com.tmall.search.httpclient.client.HttpClient();
 		ExecutorService ex = Executors.newFixedThreadPool(10);
 		long st = System.currentTimeMillis();
 		for (int i = 0; i < 10; i++) {
@@ -79,9 +78,9 @@ public class Benchmark {
 
 	public static class Xiaolinexecute implements Runnable {
 		int i;
-		TmallHttpClient tmallHttpClient;
+		com.tmall.search.httpclient.client.HttpClient tmallHttpClient;
 
-		public Xiaolinexecute(int i, TmallHttpClient tmallHttpClient) {
+		public Xiaolinexecute(int i, com.tmall.search.httpclient.client.HttpClient tmallHttpClient) {
 			this.i = i;
 			this.tmallHttpClient = tmallHttpClient;
 		}

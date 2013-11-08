@@ -44,7 +44,6 @@ public class Header {
 	public static final String IDENTITY_CODING = "identity";
 	
 	
-	
 	private Map<String, String> headerElements;
 	private int statusCode;
 	private String protocolVersion;
@@ -66,7 +65,7 @@ public class Header {
 		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {
 			isClosed = true;
 		}
-		if ("gzip".equals(headerElements.get(CONTENT_ENCODING))) {
+		if (null!=headerElements.get(CONTENT_ENCODING)) {
 			isCompressed = true;
 		}
 	}

@@ -1,5 +1,6 @@
 package com.tmall.search.httpclient.client;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -10,12 +11,13 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.tmall.search.httpclient.client.HttpRequest.MethodName;
+import com.tmall.search.httpclient.compress.AcceptDecoder;
+import com.tmall.search.httpclient.compress.DecoderUtils;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
 import com.tmall.search.httpclient.conn.ContentPaser;
 import com.tmall.search.httpclient.conn.DefaultContentPaser;
 import com.tmall.search.httpclient.conn.HttpConnection;
 import com.tmall.search.httpclient.conn.HttpConnectiongManager;
-import com.tmall.search.httpclient.util.ByteUtil;
 import com.tmall.search.httpclient.util.HttpException;
 import com.tmall.search.httpclient.util.HttpStatus;
 
@@ -117,7 +119,9 @@ public final class RequestDirector {
 			}
 			byte[] bodyData = paser.paser();
 			if (header.isCompressed()) {
-				bodyData = ByteUtil.unCompress(bodyData);
+				String compressAlgorithm = header.getHeaderElements().get(Header.CONTENT_ENCODING);
+				AcceptDecoder ad = DecoderUtils.getAcceptDecoder(resq.getInOrderAcceptEncodingList(), compressAlgorithm);
+				bodyData = ad.uncompress(bodyData);
 			}
 			hr = new HttpResponse(header, bodyData);
 			if (hr.isClosed()) {
@@ -126,7 +130,7 @@ public final class RequestDirector {
 			} else {
 				manager.freeConnection(resq.getHost(), conn);
 			}
-		} catch (HttpException e) {
+		} catch (HttpException | IOException e) {
 			manager.deleteConnection(resq.getHost(), conn);
 			throw new HttpException("Read Response error", e);
 		}

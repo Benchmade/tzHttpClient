@@ -1,10 +1,5 @@
 package com.tmall.search.httpclient.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-
-import org.apache.commons.io.IOUtils;
 
 public final class ByteUtil {
 
@@ -47,31 +42,4 @@ public final class ByteUtil {
 		return resultArray;
 	}
 
-	/**
-	 * http gzip 解压缩
-	 * @param compressData	原始数据
-	 * @return 解压后byteArray
-	 * @throws HttpException
-	 */
-	public static byte[] unCompress(byte[] compressData) throws HttpException{
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(compressData);
-		GZIPInputStream gZIPInputStream = null;
-		byte[] result = null;
-		try {
-			gZIPInputStream = new GZIPInputStream(byteArrayInputStream);
-			result = IOUtils.toByteArray(gZIPInputStream);
-			byteArrayInputStream.close();
-		} catch (IOException e) {
-			try {
-				byteArrayInputStream.close();
-				if(gZIPInputStream!=null){
-					gZIPInputStream.close();
-				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			throw new HttpException("UnCompress Failure.",e);
-		}
-		return result;
-	}
 }

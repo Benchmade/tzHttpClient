@@ -7,15 +7,15 @@ import com.tmall.search.httpclient.conn.ThreadSafeConnectionManager;
 import com.tmall.search.httpclient.util.HttpException;
 
 
-public class TmallHttpClient {
+public class HttpClient {
 
-	HttpConnectiongManager connManager;
+	private HttpConnectiongManager connManager;
 	
-	public TmallHttpClient() {
+	public HttpClient() {
 		this.connManager = new ThreadSafeConnectionManager();
 	}
 	
-	public TmallHttpClient(HttpConnectiongManager connManager) {
+	public HttpClient(HttpConnectiongManager connManager) {
 		this.connManager = connManager;
 	}
 	
@@ -32,7 +32,7 @@ public class TmallHttpClient {
 	 
 	public static void main(String[] args) throws Exception{//2644  4604
 		//Thread.sleep(10000);
-		TmallHttpClient h = new TmallHttpClient();
+		HttpClient h = new HttpClient();
 		long s = System.currentTimeMillis();
 		for(int i=0;i<10000;i++){
 			HttpRequest req = new HttpRequest("http://localhost:8080/BenchmadeWeb/xxx?q="+i);
