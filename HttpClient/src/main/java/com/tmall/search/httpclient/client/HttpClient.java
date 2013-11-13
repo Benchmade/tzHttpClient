@@ -35,7 +35,7 @@ public class HttpClient {
 		HttpClient h = new HttpClient();
 		long s = System.currentTimeMillis();
 		//for(int i=0;i<10000;i++){
-			HttpRequest req = new HttpRequest("http://www.ibm.com/developerworks/library/j-zerocopy/");
+			HttpRequest req = new HttpRequest("http://list.tmall.com/search_product.htm?spm=3.1000473.295282.66.AMAZdT&search_condition=55&cat=50076895&style=g&from=sn_1_cat&active=1#J_crumbs");
 			HttpResponse hr = h.executeMethod(req);
 			System.out.println(hr.toString());
 		//}

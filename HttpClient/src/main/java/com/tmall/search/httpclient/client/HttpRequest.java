@@ -19,7 +19,7 @@ public class HttpRequest {
 
 	public static final String ACCEPT_ENCODING = "Accept-Encoding";
 	public static final String HOST = "Host";
-	public static final String COLON = ": ";
+	public static final String COLON = ":";
 
 	/**
 	 * @author xiaolin.mxl
@@ -53,7 +53,6 @@ public class HttpRequest {
 	private URI uriInfo;
 	private byte[] reqBody;
 	private HttpHost host;
-	private String cookieValue = null;
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
 	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
 	private Map<String, String> headerElements = new HashMap<String, String>(8);
@@ -85,7 +84,7 @@ public class HttpRequest {
 		sb.append(" ").append(protocolVersion.version).append(Header.CRLF);
 		sb.append(HOST).append(COLON).append(uriInfo.getHost());
 		if (uriInfo.getPort() != -1) {
-			sb.append(":");
+			sb.append(COLON);
 			sb.append(uriInfo.getPort());
 		}
 		sb.append(Header.CRLF);
@@ -124,20 +123,10 @@ public class HttpRequest {
 		this.followRedirects = followRedirects;
 	}
 
-	public String getCookieValue() {
-		return cookieValue;
-	}
-
-	public void setCookieValue(String cookieValue) {
-		this.cookieValue = cookieValue;
-	}
-
-	public ProtocolVersion getProtocolVersion() {
-		return protocolVersion;
-	}
-
-	public void setProtocolVersion(ProtocolVersion protocolVersion) {
-		this.protocolVersion = protocolVersion;
+	public void setCookie(String cookieValue) {
+		if(cookieValue!=null && cookieValue.trim().length()>0){
+			headerElements.put("Cookie", cookieValue);
+		}
 	}
 
 	public static void main(String[] args) throws Exception {

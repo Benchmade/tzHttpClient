@@ -63,6 +63,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 		writebuffer.clear();
 		try {
 			byte[] requestData = ByteUtil.assemblyRequestBody(method.getRequestLine(), method.getHeaderElements());
+			LOG.debug("request : " + new String(requestData));
 			connectTime = System.currentTimeMillis();//设置过期检测时间
 			if (requestData.length > writebuffer.capacity()) {
 				int sy = requestData.length;

@@ -6,11 +6,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.util.HttpException;
 
 public interface HttpConnection {
-
+	public static final Logger LOG = LogManager.getLogger(HttpConnection.class);
 	/**
 	 * 发送请求获得数据.
 	 * @param method

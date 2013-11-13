@@ -40,13 +40,13 @@ public final class RequestDirector {
 	public HttpResponse execute() throws HttpException {
 		HttpResponse resp = getResponse();
 		int redirectNum = 0;
-		while (redirectNum < 5 && isRedirectNeeded(resp)) {
+		while (redirectNum < 20 && isRedirectNeeded(resp)) {
 			redirectNum++;
 			String url = resp.getHeaderElements().get("Location");
 			String cookie = resp.getHeaderElements().get("Set-Cookie");
 			try {
 				resq = new HttpRequest(url, MethodName.GET);
-				resq.setCookieValue(cookie);
+				resq.setCookie(cookie);
 				resp = getResponse();
 			} catch (URISyntaxException e) {
 				throw new HttpException("URISyntaxException:" + url, e);
