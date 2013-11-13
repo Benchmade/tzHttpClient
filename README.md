@@ -1,3 +1,3 @@
 Lightweight httpclient
 
-![image](https://github.com/muxiaolin/httpclient/blob/master/BM.png)
+![image](https://github.com/muxiaolin/httpclient/raw/master/BM.png)
