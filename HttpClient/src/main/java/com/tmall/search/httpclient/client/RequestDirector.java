@@ -1,7 +1,6 @@
 package com.tmall.search.httpclient.client;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
@@ -12,7 +11,7 @@ import org.apache.log4j.Logger;
 
 import com.tmall.search.httpclient.client.HttpRequest.MethodName;
 import com.tmall.search.httpclient.compress.AcceptDecoder;
-import com.tmall.search.httpclient.compress.DecoderUtils;
+import com.tmall.search.httpclient.compress.GzipDecoder;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
 import com.tmall.search.httpclient.conn.ContentPaser;
 import com.tmall.search.httpclient.conn.DefaultContentPaser;
@@ -119,8 +118,8 @@ public final class RequestDirector {
 			}
 			byte[] bodyData = paser.paser();
 			if (header.isCompressed()) {
-				String compressAlgorithm = header.getHeaderElements().get(Header.CONTENT_ENCODING);
-				AcceptDecoder ad = DecoderUtils.getAcceptDecoder(resq.getInOrderAcceptEncodingList(), compressAlgorithm);
+				//String compressAlgorithm = header.getHeaderElements().get(Header.CONTENT_ENCODING);
+				AcceptDecoder ad = new GzipDecoder();//DecoderUtils.getAcceptDecoder(resq.getInOrderAcceptEncodingList(), compressAlgorithm);
 				bodyData = ad.uncompress(bodyData);
 			}
 			hr = new HttpResponse(header, bodyData);

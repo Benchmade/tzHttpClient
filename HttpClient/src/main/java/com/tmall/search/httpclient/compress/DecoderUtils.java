@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.tmall.search.httpclient.util.ProtocolException;
 
+@Deprecated
 public final class DecoderUtils {
 	
 	/**

@@ -65,7 +65,7 @@ public class Header {
 		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {
 			isClosed = true;
 		}
-		if (null!=headerElements.get(CONTENT_ENCODING)) {
+		if ("gzip".equalsIgnoreCase(headerElements.get(CONTENT_ENCODING))) {
 			isCompressed = true;
 		}
 	}

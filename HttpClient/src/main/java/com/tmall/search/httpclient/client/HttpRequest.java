@@ -4,11 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.tmall.search.httpclient.compress.AcceptDecoder;
-import com.tmall.search.httpclient.compress.DecoderUtils;
 import com.tmall.search.httpclient.conn.HttpHost;
 import com.tmall.search.httpclient.params.RequestParams;
 import com.tmall.search.httpclient.util.ByteUtil;
@@ -57,11 +54,8 @@ public class HttpRequest {
 	private byte[] reqBody;
 	private HttpHost host;
 	private String cookieValue = null;
-	//默认设置全局固定参数,调用set方法,覆盖全局设置.
-	private boolean compress = RequestParams.enableCompass;
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
 	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
-	private List<AcceptDecoder> inOrderAcceptEncodingList = RequestParams.inOrderAcceptEncodingList;
 	private Map<String, String> headerElements = new HashMap<String, String>(8);
 	private String requestLine;
 
@@ -98,16 +92,12 @@ public class HttpRequest {
 		requestLine = sb.toString();
 	}
 
-	public void enableCompress(List<AcceptDecoder> customDecodeList) {
-		this.inOrderAcceptEncodingList = customDecodeList;
-		headerElements.put(ACCEPT_ENCODING, DecoderUtils.acceptEncodingStr(customDecodeList));
-	}
-
+	/**
+	 * 启用压缩,每次构建request后必须手动设置
+	 */
 	public void enableGzipCompress() {
-		if (this.inOrderAcceptEncodingList != RequestParams.inOrderAcceptEncodingList) {
-			this.inOrderAcceptEncodingList = RequestParams.inOrderAcceptEncodingList;
-		}
-		this.enableCompress(RequestParams.inOrderAcceptEncodingList);
+		//headerElements.put(ACCEPT_ENCODING, DecoderUtils.acceptEncodingStr(inOrderAcceptEncodingList));
+		headerElements.put(ACCEPT_ENCODING, "gzip");
 	}
 
 	public Map<String, String> getHeaderElements() {
@@ -142,14 +132,6 @@ public class HttpRequest {
 		this.cookieValue = cookieValue;
 	}
 
-	public boolean isCompress() {
-		return compress;
-	}
-
-	public void setCompress(boolean compress) {
-		this.compress = compress;
-	}
-
 	public ProtocolVersion getProtocolVersion() {
 		return protocolVersion;
 	}
@@ -158,17 +140,8 @@ public class HttpRequest {
 		this.protocolVersion = protocolVersion;
 	}
 
-	public List<AcceptDecoder> getInOrderAcceptEncodingList() {
-		return inOrderAcceptEncodingList;
-	}
-
-	public void setInOrderAcceptEncodingList(List<AcceptDecoder> inOrderAcceptEncodingList) {
-		this.inOrderAcceptEncodingList = inOrderAcceptEncodingList;
-	}
-
 	public static void main(String[] args) throws Exception {
 		HttpRequest m = new HttpRequest("http://www.amazon.cn/b/ref=sa_menu_softwa_l3_b811142051?ie=UTF8&node=811142051");
-		m.enableGzipCompress();
 		System.out.println(new String(ByteUtil.assemblyRequestBody(m.getRequestLine(), m.getHeaderElements())));
 	}
 

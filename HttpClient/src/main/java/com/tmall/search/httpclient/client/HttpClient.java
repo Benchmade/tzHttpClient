@@ -35,7 +35,7 @@ public class HttpClient {
 		HttpClient h = new HttpClient();
 		long s = System.currentTimeMillis();
 		//for(int i=0;i<10000;i++){
-			HttpRequest req = new HttpRequest("http://news.163.com/special/zhikubaogao/");
+			HttpRequest req = new HttpRequest("http://www.ibm.com/developerworks/library/j-zerocopy/");
 			HttpResponse hr = h.executeMethod(req);
 			System.out.println(hr.toString());
 		//}
