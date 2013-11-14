@@ -6,7 +6,6 @@ import com.tmall.search.httpclient.client.Header;
 import com.tmall.search.httpclient.util.HttpException;
 
 public interface ContentPaser {
-
 	/**
 	 * paser content
 	 * @return

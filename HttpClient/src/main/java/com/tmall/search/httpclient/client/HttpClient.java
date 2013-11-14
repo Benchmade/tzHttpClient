@@ -1,6 +1,11 @@
 package com.tmall.search.httpclient.client;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import com.tmall.search.httpclient.conn.HttpConnectiongManager;
 import com.tmall.search.httpclient.conn.ThreadSafeConnectionManager;
@@ -34,11 +39,19 @@ public class HttpClient {
 		//Thread.sleep(10000);
 		HttpClient h = new HttpClient();
 		long s = System.currentTimeMillis();
-		//for(int i=0;i<10000;i++){
-			HttpRequest req = new HttpRequest("http://list.tmall.com/search_product.htm?spm=3.1000473.295282.66.AMAZdT&search_condition=55&cat=50076895&style=g&from=sn_1_cat&active=1#J_crumbs");
+		FileOutputStream fos = new FileOutputStream(new File("d:/xxx.txt"));
+		OutputStreamWriter osw = new OutputStreamWriter(fos);
+		BufferedWriter bw = new BufferedWriter(osw);
+		for(int i=3000;i<10000;i++){
+			HttpRequest req = new HttpRequest("http://localhost:8080/BenchmadeWeb/xxx?q="+i);
 			HttpResponse hr = h.executeMethod(req);
-			System.out.println(hr.toString());
-		//}
+			bw.write(hr.toString());
+			bw.newLine();
+			
+		}
+		bw.close();
+		osw.close();
+		fos.close();
 		System.out.println(System.currentTimeMillis()-s);
 		h.close();
 		

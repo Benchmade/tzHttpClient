@@ -23,13 +23,12 @@ import com.tmall.search.httpclient.util.HttpStatus;
 /**
  * 
  * @author xiaolin.mxl
- *
  */
 public final class RequestDirector {
 
 	private HttpConnectiongManager manager;
 	private HttpRequest resq;
-	private final Logger LOG = LogManager.getLogger(RequestDirector.class);
+	private static final Logger LOG = LogManager.getLogger(RequestDirector.class);
 	private HttpConnection conn;
 
 	public RequestDirector(HttpConnectiongManager manager, HttpRequest resq) {

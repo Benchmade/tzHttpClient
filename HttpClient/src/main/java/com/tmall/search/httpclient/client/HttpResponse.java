@@ -11,7 +11,8 @@ public class HttpResponse {
 	private Map<String, String> headerElements;
 	private int statusCode;
 	private String protocolVersion;
-	private boolean isClosed;
+	private boolean isClosed; //
+	
 	public HttpResponse(Header header, byte[] data) {
 		bodyData = data;
 		headerElements = header.getHeaderElements();
@@ -47,11 +48,11 @@ public class HttpResponse {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(statusCode).append("\n");
+		/*sb.append(statusCode).append("\n");
 		for (Entry<String, String> entry : headerElements.entrySet()) {
 			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 		}
-		sb.append("\n");
+		sb.append("\n");*/
 		sb.append(new String(bodyData));
 		return sb.toString();
 	}

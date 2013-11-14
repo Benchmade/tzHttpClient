@@ -6,15 +6,33 @@ package com.tmall.search.httpclient.util;
  */
 public class ChunkContext {
 
-	private byte[] chunkData = null;
+	private byte[] data = null;
 	private int readLength;
 	private int remaining;
-	public byte[] getChunkData() {
-		return chunkData;
+	private int position;
+
+	public void grow(int length) {
+		if (data == null) {
+			data = new byte[length];
+		} else {
+			byte[] newData = new byte[data.length + length];
+			System.arraycopy(data, 0, newData, 0, data.length);
+			data = newData;
+		}
 	}
-	public void setChunkData(byte[] chunkData) {
-		this.chunkData = chunkData;
+
+	public void put(byte[] bufferData, int offset, int length) {
+		System.arraycopy(bufferData, offset, data, position, length);
+		position += length;
 	}
+	
+	public byte[] getData() {
+		return data;
+	}
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+
 	public int getReadLength() {
 		return readLength;
 	}

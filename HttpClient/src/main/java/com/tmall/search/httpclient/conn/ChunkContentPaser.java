@@ -12,7 +12,7 @@ import com.tmall.search.httpclient.util.HttpException;
 import com.tmall.search.httpclient.util.IllegalChunkDataException;
 
 /**
- * chunk paser
+ * chunk paser  byte copy
  * @author xiaolin.mxl
  */
 public class ChunkContentPaser implements ContentPaser {
@@ -49,11 +49,12 @@ public class ChunkContentPaser implements ContentPaser {
 		int chunkLength = -1;
 		while (chunkLength != 0) {
 			chunkLength = nextSize();
+			csi.grow(chunkLength);
 			csi.setReadLength(chunkLength);
 			nextData(csi);
 		}
 		done = true;
-		return csi.getChunkData();
+		return csi.getData();
 	}
 
 	private int nextSize() throws HttpException {
@@ -108,13 +109,15 @@ public class ChunkContentPaser implements ContentPaser {
 			csi.setRemaining(remaining);
 		}
 		if (csi.getReadLength() > readBuffer.limit() - pos) {//copy all
-			csi.setChunkData(ByteUtil.mergeByteArray(csi.getChunkData(), readBuffer.array(), pos, readBuffer.limit() - pos));
+			//csi.setData(ByteUtil.mergeByteArray(csi.getData(), readBuffer.array(), pos, readBuffer.limit() - pos));
+			csi.put(readBuffer.array(), pos, readBuffer.limit() - pos);
 			csi.setReadLength(csi.getReadLength() - (readBuffer.limit() - pos));
 			pos = readBuffer.limit();
 			nextData(csi);
 		} else {
 			if (csi.getReadLength() >= 0) {
-				csi.setChunkData(ByteUtil.mergeByteArray(csi.getChunkData(), readBuffer.array(), pos, csi.getReadLength()));
+				//csi.setData(ByteUtil.mergeByteArray(csi.getData(), readBuffer.array(), pos, csi.getReadLength()));
+				csi.put(readBuffer.array(), pos, csi.getReadLength());
 				pos += csi.getReadLength();
 				csi.setReadLength(-1);
 				if (pos + 2 <= readBuffer.limit()) {
@@ -144,5 +147,5 @@ public class ChunkContentPaser implements ContentPaser {
 		this.pos = header.getLength();
 		this.done = false;
 	}
-
+	
 }

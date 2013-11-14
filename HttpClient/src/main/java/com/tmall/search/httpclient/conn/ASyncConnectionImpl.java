@@ -10,6 +10,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
@@ -21,7 +24,7 @@ import com.tmall.search.httpclient.util.HttpException;
  * @author xiaolin.mxl
  */
 public class ASyncConnectionImpl implements HttpConnection {
-
+	public static final Logger LOG = LogManager.getLogger(ASyncConnectionImpl.class);
 	private AsynchronousSocketChannel client;
 	private final ByteBuffer readbuffer;
 	private final ByteBuffer writebuffer;
