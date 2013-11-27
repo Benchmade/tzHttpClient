@@ -36,9 +36,14 @@ public final class RequestDirector {
 		this.resq = resq;
 	}
 
+	/**
+	 * cookie 处理逻辑不完整
+	 * @return
+	 * @throws HttpException
+	 */
 	public HttpResponse execute() throws HttpException {
 		HttpResponse resp = getResponse();
-		int redirectNum = 0;
+		/*int redirectNum = 0;
 		while (redirectNum < 20 && isRedirectNeeded(resp)) {
 			redirectNum++;
 			String url = resp.getHeaderElements().get("Location");
@@ -50,7 +55,7 @@ public final class RequestDirector {
 			} catch (URISyntaxException e) {
 				throw new HttpException("URISyntaxException:" + url, e);
 			}
-		}
+		}*/
 		return resp;
 	}
 

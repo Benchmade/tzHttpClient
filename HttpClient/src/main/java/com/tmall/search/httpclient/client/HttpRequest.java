@@ -13,7 +13,6 @@ import com.tmall.search.httpclient.util.ByteUtil;
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.
  * @author xiaolin.mxl
- *
  */
 public class HttpRequest {
 
@@ -128,10 +127,4 @@ public class HttpRequest {
 			headerElements.put("Cookie", cookieValue);
 		}
 	}
-
-	public static void main(String[] args) throws Exception {
-		HttpRequest m = new HttpRequest("http://www.amazon.cn/b/ref=sa_menu_softwa_l3_b811142051?ie=UTF8&node=811142051");
-		System.out.println(new String(ByteUtil.assemblyRequestBody(m.getRequestLine(), m.getHeaderElements())));
-	}
-
 }

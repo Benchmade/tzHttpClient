@@ -10,7 +10,6 @@ import com.tmall.search.httpclient.util.ProtocolException;
 /**
  * httpheader描述类.
  * @author xiaolin.mxl
- *
  */
 public class Header {
 	
@@ -44,7 +43,7 @@ public class Header {
 	public static final String IDENTITY_CODING = "identity";
 	
 	
-	private Map<String, String> headerElements;
+	private Map<String, String> headerElements;//没有处理cookie,value只存一个
 	private int statusCode;
 	private String protocolVersion;
 	private boolean isChunk = false;//是否chunk模式读取
