@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.tmall.search.httpclient.conn.HttpHost;
 import com.tmall.search.httpclient.params.RequestParams;
-import com.tmall.search.httpclient.util.ByteUtil;
 
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.

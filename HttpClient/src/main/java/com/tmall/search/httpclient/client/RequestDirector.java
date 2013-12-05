@@ -1,7 +1,6 @@
 package com.tmall.search.httpclient.client;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -9,7 +8,6 @@ import java.util.concurrent.TimeoutException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.tmall.search.httpclient.client.HttpRequest.MethodName;
 import com.tmall.search.httpclient.compress.AcceptDecoder;
 import com.tmall.search.httpclient.compress.GzipDecoder;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
@@ -64,6 +62,7 @@ public final class RequestDirector {
 	 * @param resp
 	 * @return
 	 */
+	@Deprecated
 	private boolean isRedirectNeeded(final HttpResponse resp) {
 		if (resp.getStatusCode() == HttpStatus.SC_OK) {
 			return false;
