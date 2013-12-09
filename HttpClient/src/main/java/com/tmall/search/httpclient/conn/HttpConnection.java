@@ -6,9 +6,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.util.HttpException;
 
@@ -37,6 +34,8 @@ public interface HttpConnection {
 	 * @return 返回true 没过期 ,返回false 连接过期
 	 */
 	public boolean isExpired();
+	
+	public long getLastUseTime();
 	
 	/**
 	 * 指定过期时间删除过期Conn

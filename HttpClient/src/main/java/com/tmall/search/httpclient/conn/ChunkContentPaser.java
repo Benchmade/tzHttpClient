@@ -38,9 +38,6 @@ public class ChunkContentPaser implements ContentPaser {
 		}
 	}
 
-	/**
-	 * 入口方法
-	 */
 	public byte[] paser() throws HttpException {
 		if (done) {
 			throw new HttpException("finished reading the buffer ,Please Invoke reset() method");

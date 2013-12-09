@@ -39,7 +39,7 @@ public final class RequestDirector {
 	 * @return
 	 * @throws HttpException
 	 */
-	public HttpResponse execute() throws HttpException {
+	public HttpResponse execute() throws HttpException,IOException {
 		HttpResponse resp = getResponse();
 		/*int redirectNum = 0;
 		while (redirectNum < 20 && isRedirectNeeded(resp)) {
@@ -88,7 +88,7 @@ public final class RequestDirector {
 	 * @return
 	 * @throws HttpException
 	 */
-	private HttpResponse getResponse() throws HttpException {
+	private HttpResponse getResponse() throws HttpException,IOException {
 		int retryNum = 0;
 		conn = manager.getConnectionWithTimeout(resq.getHost());
 		HttpResponse hr = null;

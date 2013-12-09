@@ -10,8 +10,8 @@ public final class ConnManagerParams {//待修改
 		READER_TIMROUT(8000),//读取response超时时间
 		CONNECT_TIMEOUT_EXPIRE(10000),//keepAlive超时时间
 		GET_CONN_WAIT_TIMEOUT(2000),//获得conn对象等待超时时间.高并发时为了防止conn过多内存溢出
-		CONN_MAX_NUM_PER_HOST(5),//每个host最大拥有的连接数.
-		MAX_TOTAL_HOST(200);
+		CONN_MAX_NUM_PER_HOST(5),
+		MAX_GLOBAL_CONN(50);
 		private int value;
 		private Options(int value) {
 			this.value = value;

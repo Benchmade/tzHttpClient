@@ -32,7 +32,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 
 	@Deprecated
 	private int executeCount = 0; //当前conn链接执行的次数.
-	private long connectTime = Long.MAX_VALUE;
+	private long lastUseTime = Long.MAX_VALUE;
 
 	public ASyncConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
 		this.connParams = connParams;
@@ -66,8 +66,8 @@ public class ASyncConnectionImpl implements HttpConnection {
 		writebuffer.clear();
 		try {
 			byte[] requestData = ByteUtil.assemblyRequestBody(method.getRequestLine(), method.getHeaderElements());
-			LOG.debug("request : " + new String(requestData));
-			connectTime = System.currentTimeMillis();//设置过期检测时间
+			//LOG.debug("request : " + new String(requestData));
+			lastUseTime = System.currentTimeMillis();//设置过期检测时间
 			if (requestData.length > writebuffer.capacity()) {
 				int sy = requestData.length;
 				int pos = 0;
@@ -93,7 +93,11 @@ public class ASyncConnectionImpl implements HttpConnection {
 	@Override
 	public void close() throws IOException {
 		client.close();
-		client = null;
+	}
+	
+	@Override
+	public long getLastUseTime() {
+		return lastUseTime;
 	}
 
 	/**
@@ -109,7 +113,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 	public boolean isExpired(long idletime, TimeUnit tunit) {
 		//if (this.connParams.getValue(Options.) > executeCount && System.currentTimeMillis() - connectTime < this.connParams.getConnTimeOutExpire()) {
 		long deadline = tunit.toMillis(idletime);
-		if (System.currentTimeMillis() - connectTime > deadline) {
+		if (System.currentTimeMillis() - lastUseTime > deadline) {
 			return true;
 		} else {
 			return false;
