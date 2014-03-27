@@ -38,7 +38,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		} else {
 			this.connParam = connParam;
 		}
-		connetionPool = new ConcurrentHashMap<HttpHost, HostConnectionQueue>(this.connParam.getValue(Options.CONN_MAX_NUM_PER_HOST), 0.8F, hostNum);
+		connetionPool = new ConcurrentHashMap<>(this.connParam.getValue(Options.CONN_MAX_NUM_PER_HOST), 0.8F, hostNum);
 	}
 
 	public ThreadSafeConnectionManager() {
