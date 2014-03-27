@@ -2,8 +2,6 @@ package com.tmall.search.httpclient.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;

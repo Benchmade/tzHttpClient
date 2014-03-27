@@ -10,22 +10,11 @@ public class GzipDecoder implements AcceptDecoder {
 
 	@Override
 	public byte[] uncompress(byte[] data) throws IOException {
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-		GZIPInputStream gZIPInputStream = null;
 		byte[] result = null;
-		try {
-			gZIPInputStream = new GZIPInputStream(byteArrayInputStream);
+		try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+			GZIPInputStream gZIPInputStream = new GZIPInputStream(byteArrayInputStream);) {
 			result = IOUtils.toByteArray(gZIPInputStream);
 			byteArrayInputStream.close();
-		} finally{
-			try {
-				byteArrayInputStream.close();
-				if(gZIPInputStream!=null){
-					gZIPInputStream.close();
-				}
-			} catch (IOException e) {
-				LOG.error("", e);
-			}
 		}
 		return result;
 	}
