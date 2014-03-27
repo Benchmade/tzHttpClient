@@ -1,8 +1,6 @@
 package com.tmall.search.httpclient.conn;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import com.tmall.search.httpclient.client.Header;
 import com.tmall.search.httpclient.util.ByteList;

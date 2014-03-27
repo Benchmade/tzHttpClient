@@ -53,7 +53,7 @@ public class HttpRequest {
 	private HttpHost host;
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
 	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
-	private Map<String, String> headerElements = new HashMap<String, String>(8);
+	private Map<String, String> headerElements = new HashMap<>(8);
 	private String requestLine;
 
 	public HttpRequest(String url) throws MalformedURLException, UnsupportedEncodingException {
