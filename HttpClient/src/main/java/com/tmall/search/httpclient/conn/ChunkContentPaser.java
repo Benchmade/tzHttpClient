@@ -30,12 +30,8 @@ public class ChunkContentPaser implements ContentPaser {
 	private static final byte[] terminated = new byte[] { Header.CR, Header.LF };
 
 	private void readNextChunk() throws HttpException {
-		try {
-			this.readBuffer = conn.read();
-			this.pos = 0;
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			throw new HttpException("Paser Chunk data error", e);
-		}
+		this.readBuffer = conn.read();
+		this.pos = 0;
 	}
 
 	public byte[] paser() throws HttpException {
@@ -144,5 +140,5 @@ public class ChunkContentPaser implements ContentPaser {
 		this.pos = header.getLength();
 		this.done = false;
 	}
-	
+
 }

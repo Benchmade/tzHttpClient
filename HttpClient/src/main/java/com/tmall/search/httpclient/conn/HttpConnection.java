@@ -27,7 +27,7 @@ public interface HttpConnection {
 	 * @throws ExecutionException
 	 * @throws TimeoutException
 	 */
-	public ByteBuffer read() throws InterruptedException, ExecutionException, TimeoutException;
+	public ByteBuffer read() throws HttpException;
 
 	/**
 	 * 连接是否过期.
@@ -44,5 +44,7 @@ public interface HttpConnection {
 	 * @return
 	 */
 	public boolean isExpired(long idletime, TimeUnit tunit);
+	
+	public String getRemoteAddress();
 
 }

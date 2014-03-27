@@ -44,6 +44,10 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	public ThreadSafeConnectionManager() {
 		this(null, 128);
 	}
+	
+	public ThreadSafeConnectionManager(ConnManagerParams connParam) {
+		this(connParam, 128);
+	}
 
 	/**
 	 * @throws HttpException 
@@ -57,17 +61,18 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		if (shutdown) {
 			throw new HttpException("Connection factory has been shutdown.");
 		}
-		if ((connection = getFreeConnection(hostQueue, host)) != null) {
+		if ((connection = getFreeConnection(hostQueue)) != null) {
 			return connection;
 		}
 		if (hostQueue.liveConnNum.intValue() < this.connParam.getValue(Options.CONN_MAX_NUM_PER_HOST)) {
 			if (globalConnNum.intValue() >= this.connParam.getValue(Options.MAX_GLOBAL_CONN)) {
+				LOG.warn("deleteLeastUsedConnection:" + globalConnNum.intValue());
 				deleteLeastUsedConnection();
 			}
-			connection = new ASyncConnectionImpl(host, connParam);
+			connection = new NIOConnectionImpl(host, connParam);
 			hostQueue.liveConnNum.incrementAndGet();
 			globalConnNum.incrementAndGet();
-			LOG.debug("Create New Connection for [" + host.toString() + "](" + hostQueue.liveConnNum.intValue() + ")");
+			LOG.debug("Create New Connection for [" + host.toString() + "]{connNum:" + hostQueue.liveConnNum.intValue() + "}");
 		} else {
 			try {
 				LOG.debug(host + " Waiting for the free connection");
@@ -123,27 +128,23 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue, HttpHost host) throws HttpException {
+	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue) throws HttpException {
 		HttpConnection connection = null;
 		while ((connection = hostQueue.connQueue.poll()) != null) {
 			if (!connection.isExpired()) {//判断是否过期
 				return connection;
 			} else {
-				deleteConnection(hostQueue, connection, host);
+				deleteConnection(hostQueue, connection);
 			}
 		}
 		return connection;
-	}
-
-	private void deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection, HttpHost host) {
-		this.deleteConnection(hostQueue, connection);
-		LOG.debug("Removed Connection [" + host.toString() + "](" + hostQueue.liveConnNum + ")");
 	}
 
 	private boolean deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection) {
 		boolean success = false;
 		if (connection != null) {
 			try {
+				LOG.debug("Removed Connection [" + connection.getRemoteAddress() + "]{connNum:" + hostQueue.liveConnNum + "}");
 				connection.close();
 				success = true;
 			} catch (IOException e) {
@@ -162,7 +163,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	public void deleteConnection(HttpHost host, HttpConnection connection) throws HttpException {
 		if (host != null && connection != null) {
 			HostConnectionQueue hostQueue = getHostQueue(host, true);
-			this.deleteConnection(hostQueue, connection, host);
+			this.deleteConnection(hostQueue, connection);
 		}
 	}
 
@@ -170,12 +171,26 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * 关闭
 	 */
 	@Override
-	public void shutDown() throws IOException {
+	public void shutDown() throws IOException{
 		shutdown = true;
 		for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
-			LOG.debug(entry.getKey().toString() + " -> " + entry.getValue().connQueue.size());
-			for (HttpConnection conn : entry.getValue().connQueue) {
-				conn.close();
+			LOG.debug("Ready to shut down ["+entry.getKey().toString() + "]{connNum: " + entry.getValue().connQueue.size()+"}");
+			HostConnectionQueue hcq = entry.getValue();
+			if(hcq.liveConnNum.get()!=hcq.connQueue.size()){
+				try {
+					//等待时间在读+写超时内.
+					int sleepTime = (this.connParam.getValue(Options.READER_TIMROUT)+this.connParam.getValue(Options.WRITE_TIMEOUT));
+					LOG.info("Wait for the release using conn : "+sleepTime+"ms");
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					LOG.error(e);
+				}
+			}
+			if(hcq.liveConnNum.get()!=hcq.connQueue.size()){
+				LOG.warn("release conn timeout, conn leaked");
+			}
+			for (HttpConnection conn : hcq.connQueue) {
+				deleteConnection(hcq,conn);
 			}
 		}
 	}

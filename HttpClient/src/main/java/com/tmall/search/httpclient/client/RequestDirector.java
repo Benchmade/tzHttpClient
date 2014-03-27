@@ -105,7 +105,7 @@ public final class RequestDirector {
 				if (buffer != null) {
 					break;
 				}
-			} catch (ExecutionException | TimeoutException | InterruptedException e) {
+			} catch (HttpException e) {
 				manager.deleteConnection(resq.getHost(), conn);
 				conn = manager.getConnectionWithTimeout(resq.getHost());
 				LOG.info("Connection read failed after " + retryNum + " retries !", e);

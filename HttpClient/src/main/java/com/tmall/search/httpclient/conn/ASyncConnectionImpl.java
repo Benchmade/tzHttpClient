@@ -54,9 +54,13 @@ public class ASyncConnectionImpl implements HttpConnection {
 	}
 
 	@Override
-	public ByteBuffer read() throws InterruptedException, ExecutionException, TimeoutException {
+	public ByteBuffer read() throws HttpException {
 		readbuffer.clear();
-		client.read(readbuffer).get(this.connParams.getValue(Options.READER_TIMROUT), TimeUnit.MILLISECONDS);
+		try {
+			client.read(readbuffer).get(this.connParams.getValue(Options.READER_TIMROUT), TimeUnit.MILLISECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			throw new HttpException("Read Server request error", e);
+		}
 		readbuffer.flip();
 		return readbuffer;
 	}
@@ -118,5 +122,16 @@ public class ASyncConnectionImpl implements HttpConnection {
 		} else {
 			return false;
 		}
+	}
+	
+	@Override
+	public String getRemoteAddress() {
+		String result = "";
+		try {
+			result = client.getRemoteAddress().toString();
+		} catch (IOException e) {
+			LOG.error("getRemoteAddress error.", e);
+		}
+		return result;
 	}
 }

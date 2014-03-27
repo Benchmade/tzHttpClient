@@ -43,11 +43,7 @@ public class DefaultContentPaser implements ContentPaser {
 		remainingLength = Integer.parseInt(header.getHeaderElements().get(Header.CONTENT_LEN)) - (buffer.limit() - header.getLength());
 		buffer.clear();
 		while (remainingLength > 0) {
-			try {
-				buffer = conn.read();
-			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				throw new HttpException("Read Server request error", e);
-			}
+			buffer = conn.read();
 			remainingLength = remainingLength - buffer.limit();
 			respData = ByteUtil.mergeByteArray(respData, buffer.array(), buffer.limit());
 			buffer.clear();

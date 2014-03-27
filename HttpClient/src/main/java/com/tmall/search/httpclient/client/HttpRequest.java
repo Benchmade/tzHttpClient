@@ -1,8 +1,8 @@
 package com.tmall.search.httpclient.client;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +48,7 @@ public class HttpRequest {
 		}
 	}
 
-	private URI uriInfo;
+	private URL uriInfo;
 	private byte[] reqBody;
 	private HttpHost host;
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
@@ -56,12 +56,12 @@ public class HttpRequest {
 	private Map<String, String> headerElements = new HashMap<String, String>(8);
 	private String requestLine;
 
-	public HttpRequest(String url) throws URISyntaxException, UnsupportedEncodingException {
+	public HttpRequest(String url) throws MalformedURLException, UnsupportedEncodingException {
 		this(url, MethodName.GET);
 	}
 
-	public HttpRequest(String url, MethodName methodName) throws URISyntaxException {
-		uriInfo = new URI(url);
+	public HttpRequest(String url, MethodName methodName) throws MalformedURLException {
+		uriInfo = new URL(url);
 		host = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
 		writeRequestLine(methodName);
 	}
@@ -75,9 +75,9 @@ public class HttpRequest {
 		String reuqestMethod = methodName.toString();
 		sb.append(reuqestMethod).append(" ");//GET 
 		sb.append(uriInfo.getPath());
-		if (uriInfo.getRawQuery() != null) {
+		if (uriInfo.getQuery() != null) {
 			sb.append("?");
-			sb.append(uriInfo.getRawQuery());
+			sb.append(uriInfo.getQuery());
 		}
 		sb.append(" ").append(protocolVersion.version).append(Header.CRLF);
 		sb.append(HOST).append(COLON).append(uriInfo.getHost());
