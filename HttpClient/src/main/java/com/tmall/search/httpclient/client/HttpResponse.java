@@ -1,5 +1,6 @@
 package com.tmall.search.httpclient.client;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -8,17 +9,17 @@ import com.tmall.search.httpclient.util.ByteUtil;
 public class HttpResponse {
 
 	private byte[] bodyData;
-	private Map<String, String> headerElements;
 	private int statusCode;
 	private String protocolVersion;
 	private boolean isClosed; //
+	private Header header;
 	
 	public HttpResponse(Header header, byte[] data) {
-		bodyData = data;
-		headerElements = header.getHeaderElements();
-		statusCode = header.getStatusCode();
-		protocolVersion = header.getProtocolVersion();
-		isClosed = header.isClosed();
+		this.bodyData = data;
+		this.header = header;
+		this.statusCode = header.getStatusCode();
+		this.protocolVersion = header.getProtocolVersion();
+		this.isClosed = header.isClosed();
 	}
 
 	public byte[] getBodyData() {
@@ -41,15 +42,15 @@ public class HttpResponse {
 		return protocolVersion;
 	}
 
-	public Map<String, String> getHeaderElements() {
-		return headerElements;
+	public Header getHeader() {
+		return header;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(statusCode).append("\n");
-		for (Entry<String, String> entry : headerElements.entrySet()) {
+		for (Entry<String, List<String>> entry : header.getHeaderElementsMap().entrySet()) {
 			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 		}
 		sb.append("\n");

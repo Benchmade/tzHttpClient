@@ -47,15 +47,4 @@ public final class ByteUtil {
 		}
 		return resultArray;
 	}
-
-	public static byte[] assemblyRequestBody(String requestLine, Map<String,String> headerElements) throws UnsupportedEncodingException {
-		StringBuilder sb = new StringBuilder(8);
-		sb.append(requestLine);
-		for(Entry<String,String> entry: headerElements.entrySet()){
-			sb.append(entry.getKey()).append(HttpRequest.COLON).append(entry.getValue()).append(Header.CRLF);
-		}
-		sb.append(Header.CRLF);
-		return sb.toString().getBytes("US-ASCII");
-	}
-
 }

@@ -43,7 +43,8 @@ public class Header {
 	public static final String IDENTITY_CODING = "identity";
 	
 	
-	private Map<String, String> headerElements;//没有处理cookie,value只存一个
+	private Map<String, String> headerElements = new HashMap<>();
+	private Map<String, List<String>> headerElementsMap = new HashMap<>();
 	private int statusCode;
 	private String protocolVersion;
 	private boolean isChunk = false;//是否chunk模式读取
@@ -57,20 +58,19 @@ public class Header {
 		if (length == -1) {
 			throw new ProtocolException("Header Info is null.");
 		}
-		headerElements = headerConverter(statusList);
-		if (CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
+		headerConverter(statusList,headerElements,headerElementsMap);
+		if (headerElements.get(TRANSFER_ENCODING)!=null && CHUNK_CODING.equalsIgnoreCase(headerElements.get(TRANSFER_ENCODING))) {
 			isChunk = true;
 		}
-		if (CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {
+		if (headerElements.get(CONN_DIRECTIVE) !=null && CONN_CLOSE.equalsIgnoreCase(headerElements.get(CONN_DIRECTIVE))) {
 			isClosed = true;
 		}
-		if ("gzip".equalsIgnoreCase(headerElements.get(CONTENT_ENCODING))) {
+		if (headerElements.get(CONTENT_ENCODING)!=null && "gzip".equalsIgnoreCase(headerElements.get(CONTENT_ENCODING))) {
 			isCompressed = true;
 		}
 	}
 	
-	private Map<String,String> headerConverter(List<String> statusList) throws ProtocolException {
-		Map<String,String> elements = new HashMap<String, String>();
+	private void headerConverter(List<String> statusList,Map<String, String> headerElements,Map<String, List<String>> headerElementsMap) throws ProtocolException {
 		String name, value;
 		for (String headerLine : statusList) {
 				int colon = headerLine.indexOf(':');
@@ -79,9 +79,15 @@ public class Header {
 				}
 				name = headerLine.substring(0, colon).trim();
 				value = headerLine.substring(colon + 1).trim();
-				elements.put(name, value);
+				headerElements.put(name, value);
+				if(headerElementsMap.containsKey(name)){
+					headerElementsMap.get(name).add(value);
+				}else{
+					List<String> list = new ArrayList<>(2);
+					list.add(value);
+					headerElementsMap.put(name, list);
+				}
 			}
-		return elements;
 	}
 	
 	private int readHeader(ByteBuffer data, List<String> statusList) throws ProtocolException {
@@ -134,8 +140,12 @@ public class Header {
 		}
 	}
 
-	public Map<String, String> getHeaderElements() {
-		return headerElements;
+	public Map<String, List<String>> getHeaderElementsMap() {
+		return headerElementsMap;
+	}
+	
+	public String getHeaderElement(String key){
+		return headerElements.get(key);
 	}
 
 	public int getStatusCode() {

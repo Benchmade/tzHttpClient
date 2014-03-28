@@ -2,10 +2,12 @@ package com.tmall.search.httpclient.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.tmall.search.httpclient.client.HttpRequest.MethodName;
 import com.tmall.search.httpclient.compress.AcceptDecoder;
 import com.tmall.search.httpclient.compress.GzipDecoder;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
@@ -39,20 +41,41 @@ public final class RequestDirector {
 	 */
 	public HttpResponse execute() throws HttpException,IOException {
 		HttpResponse resp = getResponse();
-		/*int redirectNum = 0;
-		while (redirectNum < 20 && isRedirectNeeded(resp)) {
-			redirectNum++;
-			String url = resp.getHeaderElements().get("Location");
-			String cookie = resp.getHeaderElements().get("Set-Cookie");
-			try {
-				resq = new HttpRequest(url, MethodName.GET);
-				resq.setCookie(cookie);
-				resp = getResponse();
-			} catch (URISyntaxException e) {
-				throw new HttpException("URISyntaxException:" + url, e);
-			}
-		}*/
+		processRedirectResponse(resp);
 		return resp;
+	}
+	
+	/**
+	 * 处理30X跳转
+	 * @param resp
+	 * @return
+	 */
+	private void processRedirectResponse(HttpResponse resp) throws RedirectException{
+		if(isRedirectNeeded(resp)){
+			int redirectNum = 0;
+			while (redirectNum < 100 && isRedirectNeeded(resp)) {
+				redirectNum++;
+				String locationHeader = resp.getHeader().getHeaderElement("Location");
+				LOG.debug("----------------locationHeader:" + locationHeader);
+				if (locationHeader == null) {
+					throw new RedirectException("Received redirect response " + resp.getStatusCode() + " but no location header");
+		        }
+				List<String> cookie = resp.getHeader().getHeaderElementsMap().get("Set-Cookie");
+				try {
+					resq = new HttpRequest(locationHeader, MethodName.GET);
+					if(cookie!=null){
+						for(String s : cookie){
+							resq.setCookie(s);
+						}
+					}
+					
+					LOG.debug("----------------Redirect:" + new String(resq.getRequertData()));
+					resp = getResponse();
+				} catch (Exception e) {
+					throw new RedirectException("URISyntaxException:" + locationHeader, e);
+				}
+			}
+		}
 	}
 
 	/**
@@ -60,7 +83,6 @@ public final class RequestDirector {
 	 * @param resp
 	 * @return
 	 */
-	@Deprecated
 	private boolean isRedirectNeeded(final HttpResponse resp) {
 		if (resp.getStatusCode() == HttpStatus.SC_OK) {
 			return false;

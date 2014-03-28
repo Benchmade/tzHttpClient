@@ -52,7 +52,7 @@ public class NIOConnectionImpl implements HttpConnection {
 		
 		writebuffer.clear();
 		try {
-			byte[] requestData = ByteUtil.assemblyRequestBody(method.getRequestLine(), method.getHeaderElements());
+			byte[] requestData = method.getRequertData();
 			//LOG.debug("request : " + new String(requestData));
 			lastUseTime = System.currentTimeMillis();//设置过期检测时间
 			if (requestData.length > writebuffer.capacity()) {

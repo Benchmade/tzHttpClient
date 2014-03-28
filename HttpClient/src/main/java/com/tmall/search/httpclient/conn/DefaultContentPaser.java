@@ -1,8 +1,6 @@
 package com.tmall.search.httpclient.conn;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import com.tmall.search.httpclient.client.Header;
 import com.tmall.search.httpclient.util.ByteUtil;
@@ -34,13 +32,13 @@ public class DefaultContentPaser implements ContentPaser {
 		if (done) {
 			throw new HttpException("finished reading the buffer ,Please Invoke reset() method");
 		}
-		if (header.getHeaderElements().get(Header.CONTENT_LEN) == null) {
+		if (header.getHeaderElement(Header.CONTENT_LEN) == null) {
 			throw new HttpException("Header must contains Content-Length");
 		}
 		ByteBuffer buffer = readBuffer;
 		byte[] respData = ByteUtil.mergeByteArray(null, buffer.array(), header.getLength(), buffer.limit() - header.getLength());
 		int remainingLength = 0;
-		remainingLength = Integer.parseInt(header.getHeaderElements().get(Header.CONTENT_LEN)) - (buffer.limit() - header.getLength());
+		remainingLength = Integer.parseInt(header.getHeaderElement(Header.CONTENT_LEN)) - (buffer.limit() - header.getLength());
 		buffer.clear();
 		while (remainingLength > 0) {
 			buffer = conn.read();

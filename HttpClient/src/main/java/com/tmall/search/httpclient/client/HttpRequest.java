@@ -3,8 +3,11 @@ package com.tmall.search.httpclient.client;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.tmall.search.httpclient.conn.HttpHost;
 import com.tmall.search.httpclient.params.RequestParams;
@@ -49,12 +52,12 @@ public class HttpRequest {
 	}
 
 	private URL uriInfo;
-	private byte[] reqBody;
 	private HttpHost host;
 	private boolean followRedirects = RequestParams.enableFollowRedirects;
 	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
 	private Map<String, String> headerElements = new HashMap<>(8);
-	private String requestLine;
+	private final StringBuilder requestStr = new StringBuilder(16);
+	private List<String> cookies = new ArrayList<>(2);
 
 	public HttpRequest(String url) throws MalformedURLException, UnsupportedEncodingException {
 		this(url, MethodName.GET);
@@ -71,22 +74,20 @@ public class HttpRequest {
 	}
 
 	private void writeRequestLine(MethodName methodName) {
-		StringBuilder sb = new StringBuilder(16);
 		String reuqestMethod = methodName.toString();
-		sb.append(reuqestMethod).append(" ");//GET 
-		sb.append(uriInfo.getPath());
+		requestStr.append(reuqestMethod).append(" ");//GET 
+		requestStr.append(uriInfo.getPath());
 		if (uriInfo.getQuery() != null) {
-			sb.append("?");
-			sb.append(uriInfo.getQuery());
+			requestStr.append("?");
+			requestStr.append(uriInfo.getQuery());
 		}
-		sb.append(" ").append(protocolVersion.version).append(Header.CRLF);
-		sb.append(HOST).append(COLON).append(uriInfo.getHost());
+		requestStr.append(" ").append(protocolVersion.version).append(Header.CRLF);
+		requestStr.append(HOST).append(COLON).append(uriInfo.getHost());
 		if (uriInfo.getPort() != -1) {
-			sb.append(COLON);
-			sb.append(uriInfo.getPort());
+			requestStr.append(COLON);
+			requestStr.append(uriInfo.getPort());
 		}
-		sb.append(Header.CRLF);
-		requestLine = sb.toString();
+		requestStr.append(Header.CRLF);
 	}
 
 	/**
@@ -101,13 +102,6 @@ public class HttpRequest {
 		return headerElements;
 	}
 
-	public String getRequestLine() {
-		return requestLine;
-	}
-
-	public byte[] getReqBody() {
-		return reqBody;
-	}
 
 	public HttpHost getHost() {
 		return host;
@@ -123,7 +117,18 @@ public class HttpRequest {
 
 	public void setCookie(String cookieValue) {
 		if(cookieValue!=null && cookieValue.trim().length()>0){
-			headerElements.put("Cookie", cookieValue);
+			cookies.add(cookieValue);
 		}
+	}
+	
+	public byte[] getRequertData() throws UnsupportedEncodingException{
+		for(Entry<String,String> entry: headerElements.entrySet()){
+			requestStr.append(entry.getKey()).append(HttpRequest.COLON).append(entry.getValue()).append(Header.CRLF);
+		}
+		for(String cookie : cookies){
+			requestStr.append("Cookie").append(HttpRequest.COLON).append(cookie).append(Header.CRLF);
+		}
+		requestStr.append(Header.CRLF);
+		return requestStr.toString().getBytes("US-ASCII");
 	}
 }
