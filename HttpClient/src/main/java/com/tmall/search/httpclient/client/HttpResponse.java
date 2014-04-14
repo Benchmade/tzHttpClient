@@ -1,10 +1,9 @@
 package com.tmall.search.httpclient.client;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
-import com.tmall.search.httpclient.util.ByteUtil;
+import com.tmall.search.httpclient.util.ByteUtils;
 
 public class HttpResponse {
 
@@ -31,7 +30,7 @@ public class HttpResponse {
 	 * @param chunkData
 	 */
 	public void appendData(byte[] chunkData) {
-		bodyData = ByteUtil.mergeByteArray(bodyData, chunkData, chunkData.length);
+		bodyData = ByteUtils.mergeByteArray(bodyData, chunkData, chunkData.length);
 	}
 
 	public int getStatusCode() {

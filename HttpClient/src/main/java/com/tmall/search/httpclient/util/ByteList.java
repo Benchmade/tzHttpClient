@@ -4,7 +4,7 @@ package com.tmall.search.httpclient.util;
  * simple byte list , be careful
  * @author xiaolin.mxl
  */
-public class ByteList {
+public final class ByteList {
 
 	byte[] data ;
 	int pos = 0;

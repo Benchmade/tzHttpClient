@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.util.HttpException;
 
 public interface HttpConnection {
@@ -16,7 +15,7 @@ public interface HttpConnection {
 	 * @return
 	 * @throws Exception
 	 */
-	public void sendRequest(HttpRequest method) throws HttpException;
+	public void sendRequest(byte[] requestData) throws HttpException;
 
 	public void close() throws IOException;
 

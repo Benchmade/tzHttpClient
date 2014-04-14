@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
-import com.tmall.search.httpclient.util.ByteUtil;
 import com.tmall.search.httpclient.util.HttpException;
 
 /**
@@ -30,8 +29,6 @@ public class ASyncConnectionImpl implements HttpConnection {
 	private final ByteBuffer writebuffer;
 	private ConnManagerParams connParams;
 
-	@Deprecated
-	private int executeCount = 0; //当前conn链接执行的次数.
 	private long lastUseTime = Long.MAX_VALUE;
 
 	public ASyncConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
@@ -66,10 +63,9 @@ public class ASyncConnectionImpl implements HttpConnection {
 	}
 
 	@Override
-	public void sendRequest(HttpRequest method) throws HttpException {
+	public void sendRequest(byte[] requestData) throws HttpException {
 		writebuffer.clear();
 		try {
-			byte[] requestData = method.getRequertData();
 			//LOG.debug("request : " + new String(requestData));
 			lastUseTime = System.currentTimeMillis();//设置过期检测时间
 			if (requestData.length > writebuffer.capacity()) {
@@ -88,7 +84,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 				writebuffer.flip();
 				client.write(writebuffer).get(this.connParams.getValue(Options.WRITE_TIMEOUT), TimeUnit.MILLISECONDS);
 			}
-		} catch (InterruptedException | ExecutionException | TimeoutException | UnsupportedEncodingException e) {
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			throw new HttpException("Failure to send data.", e);
 		}
 		writebuffer.clear();

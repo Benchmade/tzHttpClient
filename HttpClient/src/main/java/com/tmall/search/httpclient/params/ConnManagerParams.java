@@ -1,7 +1,20 @@
 package com.tmall.search.httpclient.params;
 
-public final class ConnManagerParams {//待修改
 
+public final class ConnManagerParams {//待修改
+	public int getValue(Options key){
+		return key.value;
+	}
+
+	public void set(Options key, int value){
+		if(key==Options.SO_RCVBUF){//设置读取buffer时,最小为512,保证一次读完header信息.
+			if(value<512){
+				value = 512;
+			}
+		}
+		key.setValue(value);
+	}
+	
 	public static enum Options{
 		SO_RCVBUF(1024 * 8),//receive缓存size
 		SO_SNDBUF(1024 * 2),	//send缓冲size
@@ -20,21 +33,4 @@ public final class ConnManagerParams {//待修改
 			this.value = value;
 		}
 	}
-	
-	public int getValue(Options key){
-		return key.value;
-	}
-
-	public void set(Options key, int value){
-		if(key==Options.SO_RCVBUF){//设置读取buffer时,最小为512,保证一次读完header信息.
-			if(value<512){
-				value = 512;
-			}
-		}
-		key.setValue(value);
-	}
-	
-	/*//conn最大请求次数
-	private int connMaxTime = 100000;*/
-	
 }

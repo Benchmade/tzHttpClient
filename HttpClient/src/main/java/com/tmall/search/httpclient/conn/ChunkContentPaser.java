@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 import com.tmall.search.httpclient.client.Header;
 import com.tmall.search.httpclient.util.ByteList;
-import com.tmall.search.httpclient.util.ByteUtil;
+import com.tmall.search.httpclient.util.ByteUtils;
 import com.tmall.search.httpclient.util.ChunkContext;
 import com.tmall.search.httpclient.util.HttpException;
 import com.tmall.search.httpclient.util.IllegalChunkDataException;
@@ -62,7 +62,7 @@ public class ChunkContentPaser implements ContentPaser {
 						if (cursor < 2) {//current chunk data "13,10,x,x,x,x" or "10,x,x,x"
 							pasString = new String(snippet.array());
 						} else {
-							pasString = new String(ByteUtil.mergeByteArray(snippet.array(), readBuffer.array(), pos, cursor - pos - 1));
+							pasString = new String(ByteUtils.mergeByteArray(snippet.array(), readBuffer.array(), pos, cursor - pos - 1));
 						}
 						length = Integer.parseInt(pasString, 16);
 						pos = cursor + 1;

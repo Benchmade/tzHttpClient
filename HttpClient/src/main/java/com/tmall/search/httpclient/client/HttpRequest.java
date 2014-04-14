@@ -3,14 +3,14 @@ package com.tmall.search.httpclient.client;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import com.tmall.search.httpclient.conn.HttpHost;
-import com.tmall.search.httpclient.params.RequestParams;
+import com.tmall.search.httpclient.params.HttpMethodParams;
 
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.
@@ -21,73 +21,54 @@ public class HttpRequest {
 	public static final String ACCEPT_ENCODING = "Accept-Encoding";
 	public static final String HOST = "Host";
 	public static final String COLON = ":";
-
+	public static final String DOLLAR="$";
+	private static final HttpMethodParams defaultHttpMethodParams = new HttpMethodParams();
+	
 	/**
 	 * @author xiaolin.mxl
 	 */
 	public static enum MethodName {
-		GET, POST;
+		GET, POST, HEAD;
 		@Override
 		public String toString() {
 			return this.name().toUpperCase();
 		}
 	}
 
-	/**
-	 * 协议版本
-	 * @author xiaolin.mxl
-	 */
-	public static enum ProtocolVersion {
-		HTTP11("HTTP/1.1"), HTTP10("HTTP/1.0");
-
-		private String version;
-
-		private ProtocolVersion(String version) {
-			this.version = version;
-		}
-
-		public String getVersion() {
-			return this.version;
-		}
-	}
-
 	private URL uriInfo;
-	private HttpHost host;
-	private boolean followRedirects = RequestParams.enableFollowRedirects;
-	private ProtocolVersion protocolVersion = RequestParams.protocolVersion;
+	private HttpHost hostInfo;
+	private String path; //解析cookie使用
+	private String query; //解析cookie使用
 	private Map<String, String> headerElements = new HashMap<>(8);
-	private final StringBuilder requestStr = new StringBuilder(16);
-	private List<String> cookies = new ArrayList<>(2);
+	private Set<String> cookies = new HashSet<>();
+	private MethodName methodName;
+	private HttpMethodParams httpMethodParams;
+	private StringBuilder requestStr = new StringBuilder(16);
 
 	public HttpRequest(String url) throws MalformedURLException, UnsupportedEncodingException {
-		this(url, MethodName.GET);
+		this(url, MethodName.GET,defaultHttpMethodParams);
 	}
 
-	public HttpRequest(String url, MethodName methodName) throws MalformedURLException {
+	public HttpRequest(String url,HttpMethodParams httpMethodParams) throws MalformedURLException {
+		this(url, MethodName.GET,defaultHttpMethodParams);
+	}
+	
+	public HttpRequest(String url, MethodName methodName, HttpMethodParams httpMethodParams) throws MalformedURLException {
 		uriInfo = new URL(url);
-		host = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
-		writeRequestLine(methodName);
+		hostInfo = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
+		this.path = uriInfo.getPath();
+		this.query = uriInfo.getQuery();
+		this.methodName = methodName;
+		this.httpMethodParams = httpMethodParams;
+		buildRequestLine();
+	}
+
+	public URL getUriInfo() {
+		return uriInfo;
 	}
 
 	public void addEntry(String key, String value) {
 		headerElements.put(key, value);
-	}
-
-	private void writeRequestLine(MethodName methodName) {
-		String reuqestMethod = methodName.toString();
-		requestStr.append(reuqestMethod).append(" ");//GET 
-		requestStr.append(uriInfo.getPath());
-		if (uriInfo.getQuery() != null) {
-			requestStr.append("?");
-			requestStr.append(uriInfo.getQuery());
-		}
-		requestStr.append(" ").append(protocolVersion.version).append(Header.CRLF);
-		requestStr.append(HOST).append(COLON).append(uriInfo.getHost());
-		if (uriInfo.getPort() != -1) {
-			requestStr.append(COLON);
-			requestStr.append(uriInfo.getPort());
-		}
-		requestStr.append(Header.CRLF);
 	}
 
 	/**
@@ -102,26 +83,64 @@ public class HttpRequest {
 		return headerElements;
 	}
 
-
-	public HttpHost getHost() {
-		return host;
+	public HttpHost getHostInfo() {
+		return hostInfo;
 	}
 
-	public boolean isFollowRedirects() {
-		return followRedirects;
+	public MethodName getMethodName() {
+		return methodName;
 	}
 
-	public void setFollowRedirects(boolean followRedirects) {
-		this.followRedirects = followRedirects;
+	public void setMethodName(MethodName methodName) {
+		this.methodName = methodName;
 	}
 
-	public void setCookie(String cookieValue) {
-		if(cookieValue!=null && cookieValue.trim().length()>0){
-			cookies.add(cookieValue);
+	public void setCookies(Set<ClientCookie> cookieSet){
+		if(cookieSet!=null){
+			for(ClientCookie cookie : cookieSet){
+				StringBuilder sb = new StringBuilder();
+				sb.append(DOLLAR).append("Version=").append(cookie.getVersion()).append("; ");
+				sb.append(cookie.getName()).append("=").append(cookie.getValue()).append("; ");
+				sb.append(DOLLAR).append("Path=").append(cookie.getPath()).append("; ");
+				sb.append(DOLLAR).append("Domain=").append(cookie.getDomain());
+				cookies.add(sb.toString());
+			}
 		}
 	}
 	
-	public byte[] getRequertData() throws UnsupportedEncodingException{
+	public Set<String> getCookies() {
+		return cookies;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public String getQuery() {
+		return query;
+	}
+	
+
+	private void buildRequestLine(){
+		String reuqestMethod = methodName.toString();
+		requestStr.append(reuqestMethod).append(" ");//GET 
+		requestStr.append(this.path);
+		if (this.query != null) {
+			requestStr.append("?");
+			requestStr.append(this.query);
+		}
+		requestStr.append(" ").append(httpMethodParams.getProtocolVersion().getVersion()).append(Header.CRLF);
+		requestStr.append(HttpRequest.HOST).append(HttpRequest.COLON).append(this.hostInfo.getHost());
+		requestStr.append(HttpRequest.COLON);
+		requestStr.append(this.hostInfo.getPort());
+		requestStr.append(Header.CRLF);
+	}
+	
+	public HttpMethodParams getHttpMethodParams() {
+		return httpMethodParams;
+	}
+
+	public byte[] getOutputDate() throws UnsupportedEncodingException{
 		for(Entry<String,String> entry: headerElements.entrySet()){
 			requestStr.append(entry.getKey()).append(HttpRequest.COLON).append(entry.getValue()).append(Header.CRLF);
 		}
@@ -129,6 +148,7 @@ public class HttpRequest {
 			requestStr.append("Cookie").append(HttpRequest.COLON).append(cookie).append(Header.CRLF);
 		}
 		requestStr.append(Header.CRLF);
-		return requestStr.toString().getBytes("US-ASCII");
+		return requestStr.toString().getBytes();
 	}
+	
 }

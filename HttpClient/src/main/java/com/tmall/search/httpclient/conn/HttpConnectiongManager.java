@@ -32,12 +32,12 @@ public interface HttpConnectiongManager {
 	 * @param conn
 	 * @throws HttpException
 	 */
-	public void deleteConnection(HttpHost host, HttpConnection conn) throws HttpException;
+	public void deleteConnection(HttpHost host, HttpConnection conn);
 	public void shutDown() throws IOException;
 	/**
 	 * @return clear idle conn num
 	 * @throws IOException
 	 */
 	public int closeIdleConnections(long idletime, TimeUnit tunit) throws IOException;
-	public ConnManagerParams getParam();
+	public ConnManagerParams getParams();
 }

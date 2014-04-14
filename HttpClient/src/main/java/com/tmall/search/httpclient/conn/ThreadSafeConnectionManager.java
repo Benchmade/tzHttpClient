@@ -69,7 +69,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 				LOG.warn("deleteLeastUsedConnection:" + globalConnNum.intValue());
 				deleteLeastUsedConnection();
 			}
-			connection = new NIOConnectionImpl(host, connParam);
+			connection = new ASyncConnectionImpl(host, connParam);
 			hostQueue.liveConnNum.incrementAndGet();
 			globalConnNum.incrementAndGet();
 			LOG.debug("Create New Connection for [" + host.toString() + "]{connNum:" + hostQueue.liveConnNum.intValue() + "}");
@@ -128,7 +128,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue) throws HttpException {
+	private HttpConnection getFreeConnection(HostConnectionQueue hostQueue){
 		HttpConnection connection = null;
 		while ((connection = hostQueue.connQueue.poll()) != null) {
 			if (!connection.isExpired()) {//判断是否过期
@@ -148,7 +148,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 				connection.close();
 				success = true;
 			} catch (IOException e) {
-				LOG.error("connection close failure", e);
+				LOG.error("connection close failure. - " + connection.getRemoteAddress() , e);
 			}
 		}
 		hostQueue.liveConnNum.decrementAndGet();
@@ -160,7 +160,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * 删除链接,链接过期
 	 */
 	@Override
-	public void deleteConnection(HttpHost host, HttpConnection connection) throws HttpException {
+	public void deleteConnection(HttpHost host, HttpConnection connection) {
 		if (host != null && connection != null) {
 			HostConnectionQueue hostQueue = getHostQueue(host, true);
 			this.deleteConnection(hostQueue, connection);
@@ -205,7 +205,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	@Override
-	public ConnManagerParams getParam() {
+	public ConnManagerParams getParams() {
 		return connParam;
 	}
 

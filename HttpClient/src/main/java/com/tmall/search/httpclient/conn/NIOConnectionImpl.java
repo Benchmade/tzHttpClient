@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
-import com.tmall.search.httpclient.util.ByteUtil;
 import com.tmall.search.httpclient.util.HttpException;
 
 public class NIOConnectionImpl implements HttpConnection {
@@ -48,11 +47,10 @@ public class NIOConnectionImpl implements HttpConnection {
 	}
 	
 	@Override
-	public void sendRequest(HttpRequest method) throws HttpException {
+	public void sendRequest(byte[] requestData) throws HttpException {
 		
 		writebuffer.clear();
 		try {
-			byte[] requestData = method.getRequertData();
 			//LOG.debug("request : " + new String(requestData));
 			lastUseTime = System.currentTimeMillis();//设置过期检测时间
 			if (requestData.length > writebuffer.capacity()) {
