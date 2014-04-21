@@ -77,7 +77,7 @@ public class Header {
 				if (colon < 0) {
 					throw new ProtocolException("Unable to parse header: " + headerLine);
 				}
-				name = headerLine.substring(0, colon).trim().toLowerCase();
+				name = headerLine.substring(0, colon).trim();
 				value = headerLine.substring(colon + 1).trim();
 				headerElements.put(name, value);
 				if(headerElementsMap.containsKey(name)){

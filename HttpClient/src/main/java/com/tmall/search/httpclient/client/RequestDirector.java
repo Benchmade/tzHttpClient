@@ -30,7 +30,7 @@ public final class RequestDirector {
 
 	private HttpConnectiongManager manager;
 	private HttpRequest request;
-	HttpResponse httpResponse;
+	private HttpResponse httpResponse;
 	private static final Logger LOG = LogManager.getLogger(RequestDirector.class);
 	private HttpConnection conn;
 	private Set<ClientCookie> setCookies = new HashSet<>();
@@ -65,7 +65,7 @@ public final class RequestDirector {
 			int redirectNum = 0;
 			while (redirectNum < 10 && isRedirected()) {
 				redirectNum++;
-				String locationHeader = httpResponse.getHeader().getHeaderElement("location");
+				String locationHeader = httpResponse.getHeader().getHeaderElement(Header.CONTENT_LEN);
 				if (locationHeader == null) {
 					throw new RedirectException("Received redirect response " + httpResponse.getStatusCode() + " but no location header");
 		        }
@@ -104,7 +104,7 @@ public final class RequestDirector {
 	 */
 	public boolean isRedirected(){
         final int statusCode = httpResponse.getStatusCode();
-        final String locationHeader = httpResponse.getHeader().getHeaderElement("location");
+        final String locationHeader = httpResponse.getHeader().getHeaderElement(Header.CONTENT_LEN);
         final String method = request.getMethodName().toString();
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
