@@ -71,14 +71,6 @@ public class HttpRequest {
 		headerElements.put(key, value);
 	}
 
-	/**
-	 * 启用压缩,每次构建request后必须手动设置
-	 */
-	public void enableGzipCompress() {
-		//headerElements.put(ACCEPT_ENCODING, DecoderUtils.acceptEncodingStr(inOrderAcceptEncodingList));
-		headerElements.put(ACCEPT_ENCODING, "gzip");
-	}
-
 	public Map<String, String> getHeaderElements() {
 		return headerElements;
 	}
@@ -141,6 +133,9 @@ public class HttpRequest {
 	}
 
 	public byte[] getOutputDate() throws UnsupportedEncodingException{
+		if(httpMethodParams.isGzipCompress()){
+			headerElements.put(ACCEPT_ENCODING, "gzip");
+		}
 		for(Entry<String,String> entry: headerElements.entrySet()){
 			requestStr.append(entry.getKey()).append(HttpRequest.COLON).append(entry.getValue()).append(Header.CRLF);
 		}

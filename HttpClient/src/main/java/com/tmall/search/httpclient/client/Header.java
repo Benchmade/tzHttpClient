@@ -30,6 +30,8 @@ public class Header {
 	public static final String USER_AGENT = "User-Agent";
 	public static final String DATE_HEADER = "Date";
 	public static final String SERVER_HEADER = "Server";
+	public static final String SET_COOKIE = "Set-Cookie";
+	public static final String LOCATION = "Location";
 
 	/** HTTP expectations */
 	public static final String EXPECT_CONTINUE = "100-continue";

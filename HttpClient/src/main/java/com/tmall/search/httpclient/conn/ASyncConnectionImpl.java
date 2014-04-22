@@ -1,7 +1,6 @@
 package com.tmall.search.httpclient.conn;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -13,7 +12,6 @@ import java.util.concurrent.TimeoutException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
@@ -28,7 +26,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 	private final ByteBuffer readbuffer;
 	private final ByteBuffer writebuffer;
 	private ConnManagerParams connParams;
-
+	private HttpHost host;
 	private long lastUseTime = Long.MAX_VALUE;
 
 	public ASyncConnectionImpl(HttpHost host, ConnManagerParams connParams) throws HttpException {
@@ -43,11 +41,16 @@ public class ASyncConnectionImpl implements HttpConnection {
 						TimeUnit.MILLISECONDS);
 			}
 		} catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+			try {
+				close();
+			} catch (IOException e1) {
+				LOG.error("", e1);
+			}
 			throw new HttpException("Create Connection error ", e);
 		}
 		readbuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_RCVBUF));
 		writebuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_SNDBUF));
-
+		this.host = host;
 	}
 
 	@Override
@@ -122,12 +125,6 @@ public class ASyncConnectionImpl implements HttpConnection {
 	
 	@Override
 	public String getRemoteAddress() {
-		String result = "";
-		try {
-			result = client.getRemoteAddress().toString();
-		} catch (IOException e) {
-			LOG.error("getRemoteAddress error.", e);
-		}
-		return result;
+		return host.toString();
 	}
 }

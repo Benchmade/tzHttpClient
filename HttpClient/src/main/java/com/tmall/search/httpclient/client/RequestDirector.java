@@ -1,17 +1,19 @@
 package com.tmall.search.httpclient.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.tmall.search.httpclient.client.HttpRequest.MethodName;
-import com.tmall.search.httpclient.compress.AcceptDecoder;
-import com.tmall.search.httpclient.compress.GzipDecoder;
 import com.tmall.search.httpclient.conn.ChunkContentPaser;
 import com.tmall.search.httpclient.conn.ContentPaser;
 import com.tmall.search.httpclient.conn.DefaultContentPaser;
@@ -21,6 +23,7 @@ import com.tmall.search.httpclient.params.HttpMethodParams;
 import com.tmall.search.httpclient.util.CookieUtils;
 import com.tmall.search.httpclient.util.HttpException;
 import com.tmall.search.httpclient.util.HttpStatus;
+import com.tmall.search.httpclient.util.RequestException;
 
 /**
  * 
@@ -65,11 +68,11 @@ public final class RequestDirector {
 			int redirectNum = 0;
 			while (redirectNum < 10 && isRedirected()) {
 				redirectNum++;
-				String locationHeader = httpResponse.getHeader().getHeaderElement(Header.CONTENT_LEN);
+				String locationHeader = httpResponse.getHeader().getHeaderElement(Header.LOCATION);
 				if (locationHeader == null) {
 					throw new RedirectException("Received redirect response " + httpResponse.getStatusCode() + " but no location header");
 		        }
-				List<String> cookies = httpResponse.getHeader().getHeaderElementsMap().get("Set-Cookie");
+				List<String> cookies = httpResponse.getHeader().getHeaderElementsMap().get(Header.SET_COOKIE);
 				try {
 					request = new HttpRequest(locationHeader, MethodName.GET, httpMethodParams); //reset HttpRequest
 					Set<ClientCookie> matchCookie = CookieUtils.match(CookieUtils.cookiePaser(cookies), request);
@@ -85,11 +88,18 @@ public final class RequestDirector {
 			}
 		}
 	}
+	
+	//
 	private static final String[] REDIRECT_METHODS = new String[] {
         MethodName.GET.toString(),
         MethodName.HEAD.toString()
     };
 	
+	/**
+	 * 当前请求的方法是否允许跳转.
+	 * @param method
+	 * @return
+	 */
 	protected boolean isRedirectable(final String method) {
         for (final String m: REDIRECT_METHODS) {
             if (m.equalsIgnoreCase(method)) {
@@ -100,6 +110,7 @@ public final class RequestDirector {
 	}
 	
 	/**
+	 * 是否需要跳转.
 	 * @return
 	 */
 	public boolean isRedirected(){
@@ -124,28 +135,16 @@ public final class RequestDirector {
 	 * @return
 	 * @throws HttpException
 	 */
-	private HttpResponse getResponse() throws HttpException,IOException {
-		int retryNum = 0;
+	private HttpResponse getResponse() throws HttpException {
 		conn = manager.getConnectionWithTimeout(request.getHostInfo());
 		HttpResponse hr = null;
-		ByteBuffer buffer = null;
 		Header header = null;
-		while (true) {
-			retryNum++;
-			if (retryNum > 2) {
-				throw new HttpException("Maximum retries on connection failure !");
-			}
-			try {
-				conn.sendRequest(request.getOutputDate());
-				buffer = conn.read();
-				if (buffer != null) {
-					break;
-				}
-			} catch (HttpException e) {
-				manager.deleteConnection(request.getHostInfo(), conn);
-				conn = manager.getConnectionWithTimeout(request.getHostInfo());
-				LOG.info("Connection read failed after " + retryNum + " retries !", e);
-			}
+		ByteBuffer buffer;
+		try {
+			buffer = executeWithRetry();
+		} catch (RequestException e1) {
+			manager.freeConnection(request.getHostInfo(), conn);
+			throw new HttpException("assemble request error",e1);
 		}
 		try {
 			header = new Header(buffer);
@@ -161,9 +160,7 @@ public final class RequestDirector {
 				}
 				bodyData = paser.paser();
 				if (header.isCompressed()) {
-					//String compressAlgorithm = header.getHeaderElements().get(Header.CONTENT_ENCODING);
-					AcceptDecoder ad = new GzipDecoder();//DecoderUtils.getAcceptDecoder(resq.getInOrderAcceptEncodingList(), compressAlgorithm);
-					bodyData = ad.uncompress(bodyData);
+					bodyData = uncompress(bodyData);
 				}
 			}
 			hr = new HttpResponse(header, bodyData);
@@ -179,5 +176,52 @@ public final class RequestDirector {
 		}
 		return hr;
 	}
+	
+	
+	private ByteBuffer executeWithRetry()throws HttpException,RequestException{
+		int retryNum = 0;
+		ByteBuffer buffer = null;
+		byte[] rd = null;
+		try {
+			rd = request.getOutputDate();
+		} catch (UnsupportedEncodingException e1) {
+			throw new RequestException("assemble request error" , e1);
+		}
+		while (true) {
+			retryNum++;
+			if (retryNum > 2) {
+				throw new HttpException("Maximum retries on connection failure !");
+			}
+			try {
+				conn.sendRequest(rd);
+				buffer = conn.read();
+				if (buffer != null) {
+					break;
+				}
+			} catch (HttpException e) {
+				manager.deleteConnection(request.getHostInfo(), conn);
+				conn = manager.getConnectionWithTimeout(request.getHostInfo());
+				LOG.warn("Connection read failed after " + retryNum + " retries !", e);
+			}
+		}
+		return buffer;
+	}
+	
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 * @throws IOException
+	 */
+	public byte[] uncompress(byte[] data) throws IOException {
+		byte[] result = null;
+		try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+			GZIPInputStream gZIPInputStream = new GZIPInputStream(byteArrayInputStream);) {
+			result = IOUtils.toByteArray(gZIPInputStream);
+			byteArrayInputStream.close();
+		}
+		return result;
+	}
+
 	
 }

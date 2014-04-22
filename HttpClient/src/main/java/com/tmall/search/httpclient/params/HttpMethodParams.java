@@ -1,14 +1,12 @@
 package com.tmall.search.httpclient.params;
 
-import com.tmall.search.httpclient.compress.AcceptDecoder;
-import com.tmall.search.httpclient.compress.GzipDecoder;
 
 public class HttpMethodParams {
 	
 	private boolean followRedirect = true;//30X redirect
-	private AcceptDecoder defaultDecoder = new GzipDecoder();
 	private ProtocolVersion protocolVersion = ProtocolVersion.HTTP11;
 	private boolean onlyResponesHeaders = false;
+	private boolean gzipCompress = false;
 	
 	public boolean isFollowRedirect() {
 		return followRedirect;
@@ -18,12 +16,6 @@ public class HttpMethodParams {
 		this.followRedirect = followRedirect;
 	}
 
-
-	public AcceptDecoder getDefaultDecoder() {
-		return defaultDecoder;
-	}
-	
-	
 	public ProtocolVersion getProtocolVersion() {
 		return protocolVersion;
 	}
@@ -40,9 +32,17 @@ public class HttpMethodParams {
 		this.onlyResponesHeaders = onlyResponesHeaders;
 	}
 	
-	
-	
-	
+	public boolean isGzipCompress() {
+		return gzipCompress;
+	}
+
+	public void setGzipCompress(boolean gzipCompress) {
+		this.gzipCompress = gzipCompress;
+	}
+
+
+
+
 	/**
 	 * 协议版本
 	 * @author xiaolin.mxl

@@ -5,15 +5,16 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.tmall.search.httpclient.client.HttpRequest;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
@@ -26,6 +27,7 @@ public class NIOConnectionImpl implements HttpConnection {
 	private ConnManagerParams connParams;
 	private long lastUseTime = Long.MAX_VALUE;
 	private final static ExecutorService executorService = Executors.newCachedThreadPool();
+	private HttpHost host;
 	
 	public NIOConnectionImpl(final HttpHost host, ConnManagerParams connParams) throws HttpException{
 		this.connParams = connParams;
@@ -38,12 +40,17 @@ public class NIOConnectionImpl implements HttpConnection {
 				}
 			});
 			future.get(this.connParams.getValue(Options.CONNECT_TIMEOUT_EXPIRE),TimeUnit.MILLISECONDS);
-		//} catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException | ExecutionException | TimeoutException  e) {
+			try {
+				close();
+			} catch (IOException e1) {
+				LOG.error("", e1);
+			}
 			throw new HttpException("Can't create connection "+ host.toString(), e);
 		}
 		readbuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_RCVBUF));
 		writebuffer = ByteBuffer.allocate(this.connParams.getValue(Options.SO_SNDBUF));
+		this.host = host;
 	}
 	
 	@Override
@@ -133,13 +140,7 @@ public class NIOConnectionImpl implements HttpConnection {
 
 	@Override
 	public String getRemoteAddress() {
-		String result = "";
-		try {
-			result = client.getRemoteAddress().toString();
-		} catch (IOException e) {
-			LOG.error("getRemoteAddress error.", e);
-		}
-		return result;
+		return host.toString();
 	}
 
 }

@@ -17,7 +17,7 @@ public interface HttpConnectiongManager {
 	 * @return
 	 * @throws HttpException
 	 */
-	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException,IOException;
+	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException;
 	
 	/**
 	 * 释放conn
@@ -38,6 +38,6 @@ public interface HttpConnectiongManager {
 	 * @return clear idle conn num
 	 * @throws IOException
 	 */
-	public int closeIdleConnections(long idletime, TimeUnit tunit) throws IOException;
+	public int closeIdleConnections(long idletime, TimeUnit tunit);
 	public ConnManagerParams getParams();
 }

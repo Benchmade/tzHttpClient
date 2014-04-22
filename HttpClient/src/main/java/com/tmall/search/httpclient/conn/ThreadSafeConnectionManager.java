@@ -55,7 +55,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws IOException 
 	 */
 	@Override
-	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException, IOException {
+	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException {
 		HttpConnection connection = null;
 		HostConnectionQueue hostQueue = getHostQueue(host, true);
 		if (shutdown) {
@@ -117,7 +117,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * TODO ...
 	 */
 	@Override
-	public int closeIdleConnections(long idletime, TimeUnit tunit) throws IOException {
+	public int closeIdleConnections(long idletime, TimeUnit tunit) {
 		return connectionPoolGC(idletime, tunit);
 	}
 
@@ -148,7 +148,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 				connection.close();
 				success = true;
 			} catch (IOException e) {
-				LOG.error("connection close failure. - " + connection.getRemoteAddress() , e);
+				LOG.error("Connection close failure. - " + connection.getRemoteAddress() , e);
 			}
 		}
 		hostQueue.liveConnNum.decrementAndGet();
@@ -164,6 +164,8 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		if (host != null && connection != null) {
 			HostConnectionQueue hostQueue = getHostQueue(host, true);
 			this.deleteConnection(hostQueue, connection);
+		}else{
+			LOG.error("deleteConnection error ! host=" + host + " connection=" + connection);
 		}
 	}
 
@@ -213,7 +215,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * Stop the world
 	 * @throws HttpException
 	 */
-	private int connectionPoolGC(long idletime, TimeUnit tunit) throws IOException {
+	private int connectionPoolGC(long idletime, TimeUnit tunit){
 		poolEntryLock.lock();
 		LOG.info("begin reclaim an unused connection...");
 		int clearNum = 0;
@@ -235,7 +237,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	}
 
 	
-	private void deleteLeastUsedConnection() throws IOException {
+	private void deleteLeastUsedConnection() throws HttpException {
 		int clearNum = this.connectionPoolGC(this.connParam.getValue(Options.CONNECT_TIMEOUT_EXPIRE), TimeUnit.MILLISECONDS);
 		if (clearNum == 0) {
 			PriorityQueue<HostConnectionQueue> pq = new PriorityQueue<HostConnectionQueue>(connetionPool.size());
@@ -253,7 +255,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 				}
 			}
 			if(!removeLeast){
-				throw new IOException("Can't remove any connection, connPool is full");
+				throw new HttpException("Can't remove any connection, connPool is full");
 			}
 		}
 	}
@@ -279,12 +281,16 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			return Long.compare(lastUseTime, o.lastUseTime);
 		}
 
-		public int clearExpired(long idletime, TimeUnit tunit) throws IOException {
+		public int clearExpired(long idletime, TimeUnit tunit){
 			int closeNum = 0;
 			HttpConnection conn;
 			while ((conn = connQueue.poll()) != null) {
 				if (conn.isExpired(idletime, tunit)) {
-					conn.close();
+					try {
+						conn.close();
+					} catch (IOException e) {
+						LOG.error("Close Expired conn error", e);
+					}
 					liveConnNum.decrementAndGet();
 					closeNum++;
 				}
