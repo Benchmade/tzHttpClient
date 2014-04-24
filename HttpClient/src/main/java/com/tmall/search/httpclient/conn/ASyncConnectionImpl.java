@@ -20,7 +20,7 @@ import com.tmall.search.httpclient.util.HttpException;
  * Async impl
  * @author xiaolin.mxl
  */
-public class ASyncConnectionImpl implements HttpConnection {
+public final class ASyncConnectionImpl implements HttpConnection {
 	public static final Logger LOG = LogManager.getLogger(ASyncConnectionImpl.class);
 	private AsynchronousSocketChannel client;
 	private final ByteBuffer readbuffer;
@@ -44,7 +44,7 @@ public class ASyncConnectionImpl implements HttpConnection {
 			try {
 				close();
 			} catch (IOException e1) {
-				LOG.error("", e1);
+				LOG.error("Close an unused connection fail", e1);
 			}
 			throw new HttpException("Create Connection error ", e);
 		}

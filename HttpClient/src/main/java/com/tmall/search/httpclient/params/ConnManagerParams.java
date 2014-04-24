@@ -1,7 +1,11 @@
 package com.tmall.search.httpclient.params;
 
 
-public final class ConnManagerParams {//待修改
+public final class ConnManagerParams {
+	
+	//设置conn的实现类
+	private ConnImpl connImpl = ConnImpl.AIO;
+	
 	public int getValue(Options key){
 		return key.value;
 	}
@@ -15,16 +19,29 @@ public final class ConnManagerParams {//待修改
 		key.setValue(value);
 	}
 	
+	
+	public ConnImpl getConnImpl() {
+		return connImpl;
+	}
+
+	public void setConnImpl(ConnImpl connImpl) {
+		this.connImpl = connImpl;
+	}
+
+
+
+
+
 	public static enum Options{
 		SO_RCVBUF(1024 * 8),//receive缓存size
 		SO_SNDBUF(1024 * 2),	//send缓冲size
-		CONNECTION_TIMEOUT(500),//连接服务器超时时间
+		CONNECTION_TIMEOUT(300),//连接服务器超时时间
 		WRITE_TIMEOUT(200),//向服务器发送写请求超时
-		READER_TIMROUT(8000),//读取response超时时间
+		READER_TIMROUT(1000),//读取response超时时间
 		CONNECT_TIMEOUT_EXPIRE(10000),//keepAlive超时时间
 		GET_CONN_WAIT_TIMEOUT(2000),//获得conn对象等待超时时间.高并发时为了防止conn过多内存溢出
 		CONN_MAX_NUM_PER_HOST(5),
-		MAX_GLOBAL_CONN(50);
+		MAX_GLOBAL_CONN(200);
 		private int value;
 		private Options(int value) {
 			this.value = value;
@@ -32,5 +49,9 @@ public final class ConnManagerParams {//待修改
 		public void setValue(int value){
 			this.value = value;
 		}
+	}
+	
+	public static enum ConnImpl{
+		AIO,NIO
 	}
 }

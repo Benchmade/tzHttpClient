@@ -35,12 +35,7 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.util.LangUtils;
 
-/**
- * Default implementation of {@link SetCookie}.
- *
- * @since 4.0
- */
-public class ClientCookie implements SetCookie, Cloneable, Serializable {
+public class ClientCookie implements  Serializable {
 
     private static final long serialVersionUID = -3869795591041535538L;
 

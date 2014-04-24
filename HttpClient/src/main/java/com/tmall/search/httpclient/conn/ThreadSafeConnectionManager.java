@@ -7,12 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.tmall.search.httpclient.params.ConnManagerParams;
+import com.tmall.search.httpclient.params.ConnManagerParams.ConnImpl;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
 
@@ -25,7 +25,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	private final AtomicInteger globalConnNum = new AtomicInteger();
 	//关闭标识
 	private volatile boolean shutdown = false;
-	private ReentrantLock poolEntryLock = new ReentrantLock();
+	private volatile boolean runningGC = false;
 
 	/**
 	 * 构造线程安全的链接管理器.
@@ -69,7 +69,13 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 				LOG.warn("deleteLeastUsedConnection:" + globalConnNum.intValue());
 				deleteLeastUsedConnection();
 			}
-			connection = new ASyncConnectionImpl(host, connParam);
+			if(connParam.getConnImpl()==ConnImpl.AIO){
+				connection = new ASyncConnectionImpl(host, connParam);
+			}else if(connParam.getConnImpl()==ConnImpl.NIO){
+				connection = new NIOConnectionImpl(host, connParam);
+			}else{
+				throw new HttpException("invoke unknow implemente" + connParam.getConnImpl());
+			}
 			hostQueue.liveConnNum.incrementAndGet();
 			globalConnNum.incrementAndGet();
 			LOG.debug("Create New Connection for [" + host.toString() + "]{connNum:" + hostQueue.liveConnNum.intValue() + "}");
@@ -91,15 +97,30 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @return
 	 */
 	private HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
-		/*HostConnectionQueue connections = connetionPool.get(host);
-		if (connections == null) {
-			connections = new HostConnectionQueue();
-			HostConnectionQueue value = connetionPool.putIfAbsent(host, connections);
-			if (value != null) {
-				connections = value;
+		HostConnectionQueue connections = null;
+		if(runningGC){
+			synchronized (connetionPool) {
+				connections = connetionPool.get(host);
+				if (connections == null) {
+					connections = new HostConnectionQueue();
+					HostConnectionQueue value = connetionPool.putIfAbsent(host, connections);
+					if (value != null) {
+						connections = value;
+					}
+				}
 			}
-		}*/
-		HostConnectionQueue connections;
+		}else{
+			connections = connetionPool.get(host);
+			if (connections == null) {
+				connections = new HostConnectionQueue();
+				HostConnectionQueue value = connetionPool.putIfAbsent(host, connections);
+				if (value != null) {
+					connections = value;
+				}
+			}
+		}
+		
+		/*HostConnectionQueue connections;
 		poolEntryLock.lock();
 		try {
 			connections = connetionPool.get(host);
@@ -109,7 +130,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			}
 		} finally {
 			poolEntryLock.unlock();
-		}
+		}*/
 		return connections;
 	}
 
@@ -216,10 +237,10 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 * @throws HttpException
 	 */
 	private int connectionPoolGC(long idletime, TimeUnit tunit){
-		poolEntryLock.lock();
-		LOG.info("begin reclaim an unused connection...");
+		LOG.warn("begin reclaim an unused connection...");
 		int clearNum = 0;
-		try {
+		runningGC = true;
+		synchronized (connetionPool) {
 			for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
 				int removeNum = entry.getValue().clearExpired(idletime, tunit);
 				LOG.debug(entry.getClass().toString() + ":live conn" + entry.getValue().liveConnNum + " clear expired conn " + removeNum);
@@ -229,10 +250,9 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 					connetionPool.remove(entry.getKey());
 				}
 			}
-		} finally {
-			poolEntryLock.unlock();
 		}
-		LOG.info("remove unused conn num :" + clearNum);
+		runningGC = true;
+		LOG.warn("remove unused conn num :" + clearNum);
 		return clearNum;
 	}
 

@@ -5,7 +5,6 @@ public class HttpMethodParams {
 	
 	private boolean followRedirect = true;//30X redirect
 	private ProtocolVersion protocolVersion = ProtocolVersion.HTTP11;
-	private boolean onlyResponesHeaders = false;
 	private boolean gzipCompress = false;
 	
 	public boolean isFollowRedirect() {
@@ -24,14 +23,6 @@ public class HttpMethodParams {
 		this.protocolVersion = protocolVersion;
 	}
 
-	public boolean isOnlyResponesHeaders() {
-		return onlyResponesHeaders;
-	}
-
-	public void setOnlyResponesHeaders(boolean onlyResponesHeaders) {
-		this.onlyResponesHeaders = onlyResponesHeaders;
-	}
-	
 	public boolean isGzipCompress() {
 		return gzipCompress;
 	}

@@ -19,7 +19,7 @@ import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
 
-public class NIOConnectionImpl implements HttpConnection {
+public final class NIOConnectionImpl implements HttpConnection {
 	public static final Logger LOG = LogManager.getLogger(NIOConnectionImpl.class);
 	private SocketChannel client; 
 	private final ByteBuffer readbuffer;
@@ -44,7 +44,7 @@ public class NIOConnectionImpl implements HttpConnection {
 			try {
 				close();
 			} catch (IOException e1) {
-				LOG.error("", e1);
+				LOG.error("Close an unused connection fails", e1);
 			}
 			throw new HttpException("Can't create connection "+ host.toString(), e);
 		}

@@ -150,18 +150,14 @@ public final class RequestDirector {
 			header = new Header(buffer);
 			ContentPaser paser;
 			byte[] bodyData;
-			if(httpMethodParams.isOnlyResponesHeaders()){//只返回headers
-				bodyData = new byte[0];
-			}else{
-				if (header.isChunk()) {
-					paser = new ChunkContentPaser(conn, header, buffer);
-				} else {
-					paser = new DefaultContentPaser(conn, header, buffer);
-				}
-				bodyData = paser.paser();
-				if (header.isCompressed()) {
-					bodyData = uncompress(bodyData);
-				}
+			if (header.isChunk()) {
+				paser = new ChunkContentPaser(conn, header, buffer);
+			} else {
+				paser = new DefaultContentPaser(conn, header, buffer);
+			}
+			bodyData = paser.paser();
+			if (header.isCompressed()) {
+				bodyData = uncompress(bodyData);
 			}
 			hr = new HttpResponse(header, bodyData);
 			if (hr.isClosed()) {

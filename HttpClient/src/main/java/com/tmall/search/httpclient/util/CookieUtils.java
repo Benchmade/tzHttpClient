@@ -10,6 +10,9 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.tmall.search.httpclient.client.ClientCookie;
 import com.tmall.search.httpclient.client.HttpRequest;
 
@@ -20,18 +23,12 @@ public final class CookieUtils {
 
     /** Path delimiting charachter */
     static final char PATH_DELIM_CHAR = PATH_DELIM.charAt(0);
-	
+    private static final Logger LOG = LogManager.getLogger(CookieUtils.class);
 	/*
 	Cookie:_tb_token_=igQNox9Oi2Ed;domain=.taobao.com;Path=/;HttpOnly
 	Cookie:cookie2=daa210d90746c4b51ba8808efd63f652;domain=.taobao.com;Path=/;HttpOnly
 	Cookie:t=beca55a65e7bbdbc4a04414ac41dfcc3;domain=.taobao.com;Expires=Sun, 29-Jun-2014 02:23:37 GMT;Path=/;Secure
 	*/
-	public static void main(String[] args) throws IllegalCookieException {
-		String s = "t=beca55a65e7bbdbc4a04414ac41dfcc3;domain=.taobao.com;Expires=Sun, 29-Jun-2014 02:23:37 GMT;Path=/;Secure";
-		//String s ="t=124;";
-		ClientCookie c = cookiePaser(s);
-		System.out.println(c);
-	}
 	
 	public static boolean dateMatch(Date cookieDate){
 		return cookieDate == null  || cookieDate.after(new Date());
@@ -111,12 +108,16 @@ public final class CookieUtils {
 					result.setDomain(value);
 					break;
 				case ClientCookie.EXPIRES_ATTR:
-					SimpleDateFormat format = new SimpleDateFormat(ClientCookie.PATTERN_RFC1036, Locale.US);
+					String rfc = ClientCookie.PATTERN_RFC1036;
+					if(isRFC1123(value)){
+						rfc = ClientCookie.PATTERN_RFC1123;
+					}
+					SimpleDateFormat format = new SimpleDateFormat(rfc, Locale.US);
 					format.setTimeZone(TimeZone.getTimeZone("GMT"));
 					try {
 						result.setExpiryDate(format.parse(value));
 					} catch (ParseException e) {
-						e.printStackTrace();
+						LOG.error("Parse cookie Expires error - " + value, e);
 					}
 					break;
 				case ClientCookie.PATH_ATTR:
@@ -130,6 +131,19 @@ public final class CookieUtils {
 		return result;
 	}
 
+	/**
+	 * EEE, dd MMM yyyy HH:mm:ss zzz
+	 * @param dateStr
+	 * @return
+	 */
+	private static boolean isRFC1123(String dateStr){
+		char[] dateArr = dateStr.toCharArray();
+		if(dateArr[3]==',' && dateArr[7]==' ' && dateArr[11]==' '){
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * 
 	 * @param charArray
