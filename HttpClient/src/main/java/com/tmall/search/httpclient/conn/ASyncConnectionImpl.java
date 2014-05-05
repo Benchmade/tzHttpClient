@@ -127,4 +127,5 @@ public final class ASyncConnectionImpl implements HttpConnection {
 	public String getRemoteAddress() {
 		return host.toString();
 	}
+	
 }

@@ -96,10 +96,12 @@ public class Header {
 		int pos = 0;//记录每次header的信息起始位置.
 		int maxPos = data.limit() - Header.CRLF.length();
 		String line;
+		boolean end = false;
 		for (int i = 0; i <= maxPos; i++) {
 			if (data.get(i) == Header.CR && data.get(i + 1) == Header.LF) {
 				if (pos == i) {
 					pos = i + 2;
+					end = true;
 					break;
 				}
 				line = new String(data.array(), pos, i - pos);
@@ -111,6 +113,9 @@ public class Header {
 				pos = i + 2;
 				i++;
 			}
+		}
+		if(!end){
+			throw new ProtocolException("The line must end with a CRLF !");
 		}
 		return pos;
 	}

@@ -36,8 +36,9 @@ public final class RequestDirector {
 	private HttpResponse httpResponse;
 	private static final Logger LOG = LogManager.getLogger(RequestDirector.class);
 	private HttpConnection conn;
-	private Set<ClientCookie> setCookies = new HashSet<>();
+	private static Set<ClientCookie> setCookies = new HashSet<>();//可能有访问站点过多, cookie溢出的风险
 	private HttpMethodParams httpMethodParams;
+	private Set redirectLocations = null; 
 
 	public RequestDirector(HttpConnectiongManager manager, HttpRequest resq) {
 		this.manager = manager;
@@ -64,26 +65,28 @@ public final class RequestDirector {
 	 * @return
 	 */
 	private void processRedirectResponse() throws RedirectException{
+		this.redirectLocations = new HashSet();
 		if(isRedirected()){
 			int redirectNum = 0;
 			while (redirectNum < 10 && isRedirected()) {
 				redirectNum++;
-				String locationHeader = httpResponse.getHeader().getHeaderElement(Header.LOCATION);
-				if (locationHeader == null) {
+				String redirectUri = httpResponse.getHeader().getHeaderElement(Header.LOCATION);
+				if (redirectUri == null) {
 					throw new RedirectException("Received redirect response " + httpResponse.getStatusCode() + " but no location header");
 		        }
+				/*if (this.redirectLocations.contains(redirectUri)) {
+	                throw new RedirectException("Circular redirect to '" + redirectUri + "'");
+	            }*/
 				List<String> cookies = httpResponse.getHeader().getHeaderElementsMap().get(Header.SET_COOKIE);
+				List<ClientCookie> currentSetCookies = CookieUtils.cookiePaser(cookies);
+				setCookies.addAll(currentSetCookies);
 				try {
-					request = new HttpRequest(locationHeader, MethodName.GET, httpMethodParams); //reset HttpRequest
-					Set<ClientCookie> matchCookie = CookieUtils.match(CookieUtils.cookiePaser(cookies), request);
-					if(matchCookie!=null){
-						setCookies.addAll(matchCookie);
-					}
-					request.setCookies(setCookies);
-					LOG.debug("Redirect:" + new String(request.getOutputDate()));
+					request = new HttpRequest(redirectUri, MethodName.GET, httpMethodParams); //reset HttpRequest
+					Set<ClientCookie> matchCookie = CookieUtils.match(setCookies, request);
+					request.setCookies(matchCookie);
 					httpResponse = getResponse();
 				} catch (Exception e) {
-					throw new RedirectException("URISyntaxException:" + locationHeader, e);
+					throw new RedirectException("URISyntaxException:" + redirectUri, e);
 				}
 			}
 		}
@@ -120,7 +123,7 @@ public final class RequestDirector {
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
             return isRedirectable(method) && locationHeader != null;
-        case HttpStatus.SC_MOVED_PERMANENTLY:
+        case HttpStatus.SC_MOVED_PERMANENTLY: //Content-Length is null
         case HttpStatus.SC_TEMPORARY_REDIRECT:
             return isRedirectable(method);
         case HttpStatus.SC_SEE_OTHER:
@@ -136,6 +139,8 @@ public final class RequestDirector {
 	 * @throws HttpException
 	 */
 	private HttpResponse getResponse() throws HttpException {
+		Set<ClientCookie> matchCookie = CookieUtils.match(setCookies, request);
+		request.setCookies(matchCookie);
 		conn = manager.getConnectionWithTimeout(request.getHostInfo());
 		HttpResponse hr = null;
 		Header header = null;
@@ -143,7 +148,7 @@ public final class RequestDirector {
 		try {
 			buffer = executeWithRetry();
 		} catch (RequestException e1) {
-			manager.freeConnection(request.getHostInfo(), conn);
+			manager.deleteConnection(request.getHostInfo(), conn , "getResponse Exception");
 			throw new HttpException("assemble request error",e1);
 		}
 		try {
@@ -161,15 +166,15 @@ public final class RequestDirector {
 			}
 			hr = new HttpResponse(header, bodyData);
 			if (hr.isClosed()) {
-				manager.deleteConnection(request.getHostInfo(), conn);
-				LOG.debug(request.getHostInfo() + " server closed this connection");
+				manager.deleteConnection(request.getHostInfo(), conn , "server closed this connection");
 			} else {
 				manager.freeConnection(request.getHostInfo(), conn);
 			}
 		} catch (HttpException | IOException e) {
-			manager.deleteConnection(request.getHostInfo(), conn);
+			manager.deleteConnection(request.getHostInfo(), conn, "getResponse Exception");
 			throw new HttpException("Read Response error", e);
 		}
+		//LOG.debug(hr.toString());
 		return hr;
 	}
 	
@@ -180,14 +185,12 @@ public final class RequestDirector {
 		byte[] rd = null;
 		try {
 			rd = request.getOutputDate();
+			LOG.debug("Redirect: '" + request.getHostInfo().getProtocol() + "' RequestLine:" + new String(rd));
 		} catch (UnsupportedEncodingException e1) {
 			throw new RequestException("assemble request error" , e1);
 		}
 		while (true) {
 			retryNum++;
-			if (retryNum > 2) {
-				throw new HttpException("Maximum retries on connection failure !");
-			}
 			try {
 				conn.sendRequest(rd);
 				buffer = conn.read();
@@ -195,8 +198,12 @@ public final class RequestDirector {
 					break;
 				}
 			} catch (HttpException e) {
-				manager.deleteConnection(request.getHostInfo(), conn);
-				conn = manager.getConnectionWithTimeout(request.getHostInfo());
+				manager.deleteConnection(request.getHostInfo(), conn, "executeWithRetry Exception");
+				if (retryNum > 2) {
+					throw new HttpException("Maximum retries on connection failure !");
+				}else{
+					conn = manager.getConnectionWithTimeout(request.getHostInfo());
+				}
 				LOG.warn("Connection read failed after " + retryNum + " retries !", e);
 			}
 		}
@@ -219,5 +226,4 @@ public final class RequestDirector {
 		return result;
 	}
 
-	
 }

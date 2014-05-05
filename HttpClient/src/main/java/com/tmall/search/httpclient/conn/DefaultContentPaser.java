@@ -29,11 +29,14 @@ public class DefaultContentPaser implements ContentPaser {
 
 	@Override
 	public byte[] paser() throws HttpException {
+		/*if(header.getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY){
+			return new byte[0];
+		}*/
 		if (done) {
 			throw new HttpException("finished reading the buffer ,Please Invoke reset() method");
 		}
 		if (header.getHeaderElement(Header.CONTENT_LEN) == null) {
-			throw new HttpException("Header must contains Content-Length./n" + new String(readBuffer.array()));
+			throw new HttpException("Header must contains Content-Length!\n" + new String(readBuffer.array()));
 		}
 		ByteBuffer buffer = readBuffer;
 		byte[] respData = ByteUtils.mergeByteArray(null, buffer.array(), header.getLength(), buffer.limit() - header.getLength());
@@ -49,5 +52,5 @@ public class DefaultContentPaser implements ContentPaser {
 		done = true;
 		return respData;
 	}
-	
+
 }

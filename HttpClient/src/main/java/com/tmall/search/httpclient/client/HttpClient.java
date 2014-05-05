@@ -3,7 +3,7 @@ package com.tmall.search.httpclient.client;
 import java.io.IOException;
 
 import com.tmall.search.httpclient.conn.HttpConnectiongManager;
-import com.tmall.search.httpclient.conn.ThreadSafeConnectionManager;
+import com.tmall.search.httpclient.conn.MultiThreadConnectionManager;
 import com.tmall.search.httpclient.params.ConnManagerParams;
 import com.tmall.search.httpclient.util.HttpException;
 
@@ -13,10 +13,10 @@ import com.tmall.search.httpclient.util.HttpException;
 public class HttpClient {
 
 	private HttpConnectiongManager connManager;
-	private ConnManagerParams connManagerParams;
+	private ConnManagerParams connManagerParams = new ConnManagerParams();
 	
 	public HttpClient() {
-		this.connManager = new ThreadSafeConnectionManager(connManagerParams);
+		this.connManager = new MultiThreadConnectionManager(connManagerParams);
 	}
 	
 	public HttpClient(ConnManagerParams connManagerParams) {
@@ -24,7 +24,7 @@ public class HttpClient {
 			connManagerParams = new ConnManagerParams();
 		}
 		this.connManagerParams = connManagerParams;
-		this.connManager = new ThreadSafeConnectionManager(connManagerParams);
+		this.connManager = new MultiThreadConnectionManager(connManagerParams);
 	}
 	
 	public ConnManagerParams getConnManagerParams() {

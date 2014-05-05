@@ -6,11 +6,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.tmall.search.httpclient.conn.HttpHost;
 import com.tmall.search.httpclient.params.HttpMethodParams;
+import com.tmall.search.httpclient.util.ProtocolException;
 
 /**
  * httprequest请求数据描述类,没有写param类定义可配置参数.
@@ -23,7 +24,7 @@ public class HttpRequest {
 	public static final String COLON = ":";
 	public static final String DOLLAR="$";
 	private static final HttpMethodParams defaultHttpMethodParams = new HttpMethodParams();
-	
+	//private static final Logger LOG = LogManager.getLogger(HttpRequest.class);
 	/**
 	 * @author xiaolin.mxl
 	 */
@@ -45,24 +46,32 @@ public class HttpRequest {
 	private HttpMethodParams httpMethodParams;
 	private StringBuilder requestStr = new StringBuilder(16);
 
-	public HttpRequest(String url) throws MalformedURLException, UnsupportedEncodingException {
+	public HttpRequest(String url) throws MalformedURLException, ProtocolException {
 		this(url, MethodName.GET,defaultHttpMethodParams);
 	}
 
-	public HttpRequest(String url,HttpMethodParams httpMethodParams) throws MalformedURLException {
+	public HttpRequest(String url,HttpMethodParams httpMethodParams) throws MalformedURLException,ProtocolException {
 		this(url, MethodName.GET,defaultHttpMethodParams);
 	}
 	
-	public HttpRequest(String url, MethodName methodName, HttpMethodParams httpMethodParams) throws MalformedURLException {
+	public HttpRequest(String url, MethodName methodName, HttpMethodParams httpMethodParams) throws MalformedURLException ,ProtocolException{
 		uriInfo = new URL(url);
-		hostInfo = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
+		/*if("https".equalsIgnoreCase(uriInfo.getProtocol())){
+			throw new ProtocolException("Does not support the https protocol!");
+		}*/
+		if("https".equalsIgnoreCase(uriInfo.getProtocol())){
+			hostInfo = new HttpHost(uriInfo.getHost(), 443);
+		}else{
+			hostInfo = new HttpHost(uriInfo.getHost(), uriInfo.getPort());
+		}
+		hostInfo.setProtocol(uriInfo.getProtocol());
 		this.path = uriInfo.getPath();
 		this.query = uriInfo.getQuery();
 		this.methodName = methodName;
 		this.httpMethodParams = httpMethodParams;
 		buildRequestLine();
 	}
-
+	
 	public URL getUriInfo() {
 		return uriInfo;
 	}
@@ -123,9 +132,13 @@ public class HttpRequest {
 		}
 		requestStr.append(" ").append(httpMethodParams.getProtocolVersion().getVersion()).append(Header.CRLF);
 		requestStr.append(HttpRequest.HOST).append(HttpRequest.COLON).append(this.hostInfo.getHost());
-		requestStr.append(HttpRequest.COLON);
-		requestStr.append(this.hostInfo.getPort());
+		if(this.hostInfo.getPort()!=80){
+			requestStr.append(HttpRequest.COLON);
+			requestStr.append(this.hostInfo.getPort());
+		}
 		requestStr.append(Header.CRLF);
+		//requestStr.append("User-Agent:Jakarta Commons-HttpClient/3.1");
+		//requestStr.append(Header.CRLF);
 	}
 	
 	public HttpMethodParams getHttpMethodParams() {
@@ -143,6 +156,7 @@ public class HttpRequest {
 			requestStr.append("Cookie").append(HttpRequest.COLON).append(cookie).append(Header.CRLF);
 		}
 		requestStr.append(Header.CRLF);
+		//LOG.debug(requestStr);
 		return requestStr.toString().getBytes();
 	}
 	

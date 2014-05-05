@@ -34,7 +34,7 @@ public final class CookieUtils {
 		return cookieDate == null  || cookieDate.after(new Date());
 	}
 
-	public static Set<ClientCookie> match(List<ClientCookie> cookies, HttpRequest httpRequest) {
+	public static Set<ClientCookie> match(Set<ClientCookie> cookies, HttpRequest httpRequest) {
 		Set<ClientCookie> newList = new HashSet<>(cookies.size());
 		for (ClientCookie cookie : cookies) {
 			if (domainMatch(httpRequest.getHostInfo().getHost(), cookie.getDomain()) && pathMatch(httpRequest.getPath(),cookie.getPath()) && dateMatch(cookie.getExpiryDate())) {
@@ -58,22 +58,24 @@ public final class CookieUtils {
     }
 
 	public static boolean domainMatch(final String host, String domain) {
-		if (host.equals(domain)) {
-			return true;
-		}
-		if (!domain.startsWith(".")) {
-			domain = "." + domain;
-		}
-		return host.endsWith(domain) || host.equals(domain.substring(1));
+		final boolean match = host.equals(domain)
+                || (domain.startsWith(".") && host.endsWith(domain));
+		return match;
 	}
 
-	public static List<ClientCookie> cookiePaser(List<String> setCookie) throws IllegalCookieException {
+	public static List<ClientCookie> cookiePaser(List<String> setCookie) {
 		List<ClientCookie> list = new ArrayList<>();
+		
 		if(setCookie!=null && setCookie.size()>0){
 			for (String cookieStr : setCookie) {
-				ClientCookie cookie = cookiePaser(cookieStr);
-				if(cookie!=null){
-					list.add(cookie);
+				ClientCookie cookie;
+				try {
+					cookie = cookiePaser(cookieStr);
+					if(cookie!=null){
+						list.add(cookie);
+					}
+				} catch (IllegalCookieException e) {
+					LOG.error("format setcookie error ", e);
 				}
 			}
 		}
@@ -237,5 +239,6 @@ public final class CookieUtils {
 			this.terminated = terminated;
 		}
 	}
-
+	
+	
 }

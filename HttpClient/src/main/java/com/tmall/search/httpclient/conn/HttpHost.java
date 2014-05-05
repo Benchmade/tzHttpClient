@@ -9,6 +9,7 @@ public final class HttpHost {
 
 	private String host; //地址
 	private int port;	//端口
+	private String protocol = "http"; //协议
 	
 	public HttpHost(String host, int port) {
 		this.host = host;
@@ -21,9 +22,12 @@ public final class HttpHost {
 
 	@Override
 	public boolean equals(Object obj) {
-		HttpHost other = (HttpHost)obj;
+		if(obj==null){
+			return false;
+		}
 		boolean equal;
-		if(this.host.equals(other.host) && this.port==other.port){
+		HttpHost other = (HttpHost)obj;
+		if(this.host.equals(other.host) && this.port==other.port && this.protocol.equals(other.protocol)){
 			equal = true;
 		}else{
 			equal = false;
@@ -38,7 +42,7 @@ public final class HttpHost {
 	
 	@Override
 	public int hashCode() {
-		return host.hashCode()+ port;
+		return host.hashCode()+ port + protocol.hashCode();
 	}
 	
 	public String getHost() {
@@ -56,7 +60,13 @@ public final class HttpHost {
 	public void setPort(int port) {
 		this.port = port;
 	}
-	
-	
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
 	
 }

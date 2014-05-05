@@ -50,10 +50,12 @@ public class HttpResponse {
 		StringBuilder sb = new StringBuilder();
 		sb.append(statusCode).append("\n");
 		for (Entry<String, List<String>> entry : header.getHeaderElementsMap().entrySet()) {
-			sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+			for(String val : entry.getValue()){
+				sb.append(entry.getKey()).append(": ").append(val).append("\n");
+			}
 		}
-		sb.append("\n");
-		sb.append(new String(bodyData));
+		//sb.append("\n");
+		//sb.append(new String(bodyData));
 		return sb.toString();
 	}
 

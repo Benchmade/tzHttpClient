@@ -35,362 +35,356 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.util.LangUtils;
 
-public class ClientCookie implements  Serializable {
+public class ClientCookie implements Serializable, Cloneable {
 
-    private static final long serialVersionUID = -3869795591041535538L;
+	private static final long serialVersionUID = -3869795591041535538L;
 
-    // RFC2109 attributes
-    public static final String VERSION_ATTR    = "version";
-    public static final String PATH_ATTR       = "path";
-    public static final String DOMAIN_ATTR     = "domain";
-    public static final String MAX_AGE_ATTR    = "max-age";
-    public static final String SECURE_ATTR     = "secure";
-    public static final String COMMENT_ATTR    = "comment";
-    public static final String EXPIRES_ATTR    = "expires";
+	// RFC2109 attributes
+	public static final String VERSION_ATTR = "version";
+	public static final String PATH_ATTR = "path";
+	public static final String DOMAIN_ATTR = "domain";
+	public static final String MAX_AGE_ATTR = "max-age";
+	public static final String SECURE_ATTR = "secure";
+	public static final String COMMENT_ATTR = "comment";
+	public static final String EXPIRES_ATTR = "expires";
 
-    // RFC2965 attributes
-    public static final String PORT_ATTR       = "port";
-    public static final String COMMENTURL_ATTR = "commenturl";
-    public static final String DISCARD_ATTR    = "discard";
-    /**
-     * Date format pattern used to parse HTTP date headers in RFC 1123 format.
-     */
-    public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    /**
-     * Date format pattern used to parse HTTP date headers in RFC 1036 format.
-     */
-    public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
-    
-    /** Cookie name */
-    private final String name;
+	// RFC2965 attributes
+	public static final String PORT_ATTR = "port";
+	public static final String COMMENTURL_ATTR = "commenturl";
+	public static final String DISCARD_ATTR = "discard";
+	/**
+	 * Date format pattern used to parse HTTP date headers in RFC 1123 format.
+	 */
+	public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
+	/**
+	 * Date format pattern used to parse HTTP date headers in RFC 1036 format.
+	 */
+	public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
 
-    /** Cookie attributes as specified by the origin server */
-    private Map<String, String> attribs;
+	/** Cookie name */
+	private final String name;
 
-    /** Cookie value */
-    private String value;
+	/** Cookie attributes as specified by the origin server */
+	private Map<String, String> attribs;
 
-    /** Comment attribute. */
-    private String  cookieComment;
+	/** Cookie value */
+	private String value;
 
-    /** Domain attribute. */
-    private String  cookieDomain;
+	/** Comment attribute. */
+	private String cookieComment;
 
-    /** Expiration {@link Date}. */
-    private Date cookieExpiryDate;
+	/** Domain attribute. */
+	private String cookieDomain;
 
-    /** Path attribute. */
-    private String cookiePath;
+	/** Expiration {@link Date}. */
+	private Date cookieExpiryDate;
 
-    /** My secure flag. */
-    private boolean isSecure;
+	/** Path attribute. */
+	private String cookiePath;
 
-    /** The version of the cookie specification I was created from. */
-    private int cookieVersion;
-    /**
-     * Default Constructor taking a name and a value. The value may be null.
-     *
-     * @param name The name.
-     * @param value The value.
-     */
-    public ClientCookie(final String name, final String value) {
-        super();
-        if (name == null) {
-            throw new IllegalArgumentException("name may not be null");
-        }
-        this.name = name;
-        this.attribs = new HashMap<String, String>();
-        this.value = value;
-    }
+	/** My secure flag. */
+	private boolean isSecure;
 
-    /**
-     * Returns the name.
-     *
-     * @return String name The name
-     */
-    public String getName() {
-        return this.name;
-    }
+	/** The version of the cookie specification I was created from. */
+	private int cookieVersion;
 
-    /**
-     * Returns the value.
-     *
-     * @return String value The current value.
-     */
-    public String getValue() {
-        return this.value;
-    }
+	/**
+	 * Default Constructor taking a name and a value. The value may be null.
+	 *
+	 * @param name The name.
+	 * @param value The value.
+	 */
+	public ClientCookie(final String name, final String value) {
+		super();
+		if (name == null) {
+			throw new IllegalArgumentException("name may not be null");
+		}
+		this.name = name;
+		this.attribs = new HashMap<String, String>();
+		this.value = value;
+	}
 
-    /**
-     * Sets the value
-     *
-     * @param value
-     */
-    public void setValue(final String value) {
-        this.value = value;
-    }
+	/**
+	 * Returns the name.
+	 *
+	 * @return String name The name
+	 */
+	public String getName() {
+		return this.name;
+	}
 
-    /**
-     * Returns the comment describing the purpose of this cookie, or
-     * <tt>null</tt> if no such comment has been defined.
-     *
-     * @return comment
-     *
-     * @see #setComment(String)
-     */
-    public String getComment() {
-        return cookieComment;
-    }
+	/**
+	 * Returns the value.
+	 *
+	 * @return String value The current value.
+	 */
+	public String getValue() {
+		return this.value;
+	}
 
-    /**
-     * If a user agent (web browser) presents this cookie to a user, the
-     * cookie's purpose will be described using this comment.
-     *
-     * @param comment
-     *
-     * @see #getComment()
-     */
-    public void setComment(final String comment) {
-        cookieComment = comment;
-    }
+	/**
+	 * Sets the value
+	 *
+	 * @param value
+	 */
+	public void setValue(final String value) {
+		this.value = value;
+	}
 
+	/**
+	 * Returns the comment describing the purpose of this cookie, or
+	 * <tt>null</tt> if no such comment has been defined.
+	 *
+	 * @return comment
+	 *
+	 * @see #setComment(String)
+	 */
+	public String getComment() {
+		return cookieComment;
+	}
 
-    /**
-     * Returns null. Cookies prior to RFC2965 do not set this attribute
-     */
-    public String getCommentURL() {
-        return null;
-    }
+	/**
+	 * If a user agent (web browser) presents this cookie to a user, the
+	 * cookie's purpose will be described using this comment.
+	 *
+	 * @param comment
+	 *
+	 * @see #getComment()
+	 */
+	public void setComment(final String comment) {
+		cookieComment = comment;
+	}
 
+	/**
+	 * Returns null. Cookies prior to RFC2965 do not set this attribute
+	 */
+	public String getCommentURL() {
+		return null;
+	}
 
-    /**
-     * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
-     * if none exists.
-     * <p><strong>Note:</strong> the object returned by this method is
-     * considered immutable. Changing it (e.g. using setTime()) could result
-     * in undefined behaviour. Do so at your peril. </p>
-     * @return Expiration {@link Date}, or <tt>null</tt>.
-     *
-     * @see #setExpiryDate(java.util.Date)
-     *
-     */
-    public Date getExpiryDate() {
-        return cookieExpiryDate;
-    }
+	/**
+	 * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
+	 * if none exists.
+	 * <p><strong>Note:</strong> the object returned by this method is
+	 * considered immutable. Changing it (e.g. using setTime()) could result
+	 * in undefined behaviour. Do so at your peril. </p>
+	 * @return Expiration {@link Date}, or <tt>null</tt>.
+	 *
+	 * @see #setExpiryDate(java.util.Date)
+	 *
+	 */
+	public Date getExpiryDate() {
+		return cookieExpiryDate;
+	}
 
-    /**
-     * Sets expiration date.
-     * <p><strong>Note:</strong> the object returned by this method is considered
-     * immutable. Changing it (e.g. using setTime()) could result in undefined
-     * behaviour. Do so at your peril.</p>
-     *
-     * @param expiryDate the {@link Date} after which this cookie is no longer valid.
-     *
-     * @see #getExpiryDate
-     *
-     */
-    public void setExpiryDate (final Date expiryDate) {
-        cookieExpiryDate = expiryDate;
-    }
+	/**
+	 * Sets expiration date.
+	 * <p><strong>Note:</strong> the object returned by this method is considered
+	 * immutable. Changing it (e.g. using setTime()) could result in undefined
+	 * behaviour. Do so at your peril.</p>
+	 *
+	 * @param expiryDate the {@link Date} after which this cookie is no longer valid.
+	 *
+	 * @see #getExpiryDate
+	 *
+	 */
+	public void setExpiryDate(final Date expiryDate) {
+		cookieExpiryDate = expiryDate;
+	}
 
+	/**
+	 * Returns <tt>false</tt> if the cookie should be discarded at the end
+	 * of the "session"; <tt>true</tt> otherwise.
+	 *
+	 * @return <tt>false</tt> if the cookie should be discarded at the end
+	 *         of the "session"; <tt>true</tt> otherwise
+	 */
+	public boolean isPersistent() {
+		return (null != cookieExpiryDate);
+	}
 
-    /**
-     * Returns <tt>false</tt> if the cookie should be discarded at the end
-     * of the "session"; <tt>true</tt> otherwise.
-     *
-     * @return <tt>false</tt> if the cookie should be discarded at the end
-     *         of the "session"; <tt>true</tt> otherwise
-     */
-    public boolean isPersistent() {
-        return (null != cookieExpiryDate);
-    }
+	/**
+	 * Returns domain attribute of the cookie.
+	 *
+	 * @return the value of the domain attribute
+	 *
+	 * @see #setDomain(java.lang.String)
+	 */
+	public String getDomain() {
+		return cookieDomain;
+	}
 
+	/**
+	 * Sets the domain attribute.
+	 *
+	 * @param domain The value of the domain attribute
+	 *
+	 * @see #getDomain
+	 */
+	public void setDomain(final String domain) {
+		if (domain != null) {
+			cookieDomain = domain.toLowerCase(Locale.ENGLISH);
+		} else {
+			cookieDomain = null;
+		}
+	}
 
-    /**
-     * Returns domain attribute of the cookie.
-     *
-     * @return the value of the domain attribute
-     *
-     * @see #setDomain(java.lang.String)
-     */
-    public String getDomain() {
-        return cookieDomain;
-    }
+	/**
+	 * Returns the path attribute of the cookie
+	 *
+	 * @return The value of the path attribute.
+	 *
+	 * @see #setPath(java.lang.String)
+	 */
+	public String getPath() {
+		return cookiePath;
+	}
 
-    /**
-     * Sets the domain attribute.
-     *
-     * @param domain The value of the domain attribute
-     *
-     * @see #getDomain
-     */
-    public void setDomain(final String domain) {
-        if (domain != null) {
-            cookieDomain = domain.toLowerCase(Locale.ENGLISH);
-        } else {
-            cookieDomain = null;
-        }
-    }
+	/**
+	 * Sets the path attribute.
+	 *
+	 * @param path The value of the path attribute
+	 *
+	 * @see #getPath
+	 *
+	 */
+	public void setPath(final String path) {
+		cookiePath = path;
+	}
 
+	/**
+	 * @return <code>true</code> if this cookie should only be sent over secure connections.
+	 * @see #setSecure(boolean)
+	 */
+	public boolean isSecure() {
+		return isSecure;
+	}
 
-    /**
-     * Returns the path attribute of the cookie
-     *
-     * @return The value of the path attribute.
-     *
-     * @see #setPath(java.lang.String)
-     */
-    public String getPath() {
-        return cookiePath;
-    }
+	/**
+	 * Sets the secure attribute of the cookie.
+	 * <p>
+	 * When <tt>true</tt> the cookie should only be sent
+	 * using a secure protocol (https).  This should only be set when
+	 * the cookie's originating server used a secure protocol to set the
+	 * cookie's value.
+	 *
+	 * @param secure The value of the secure attribute
+	 *
+	 * @see #isSecure()
+	 */
+	public void setSecure(final boolean secure) {
+		isSecure = secure;
+	}
 
-    /**
-     * Sets the path attribute.
-     *
-     * @param path The value of the path attribute
-     *
-     * @see #getPath
-     *
-     */
-    public void setPath(final String path) {
-        cookiePath = path;
-    }
+	/**
+	 * Returns null. Cookies prior to RFC2965 do not set this attribute
+	 */
+	public int[] getPorts() {
+		return null;
+	}
 
-    /**
-     * @return <code>true</code> if this cookie should only be sent over secure connections.
-     * @see #setSecure(boolean)
-     */
-    public boolean isSecure() {
-        return isSecure;
-    }
+	/**
+	 * Returns the version of the cookie specification to which this
+	 * cookie conforms.
+	 *
+	 * @return the version of the cookie.
+	 *
+	 * @see #setVersion(int)
+	 *
+	 */
+	public int getVersion() {
+		return cookieVersion;
+	}
 
-    /**
-     * Sets the secure attribute of the cookie.
-     * <p>
-     * When <tt>true</tt> the cookie should only be sent
-     * using a secure protocol (https).  This should only be set when
-     * the cookie's originating server used a secure protocol to set the
-     * cookie's value.
-     *
-     * @param secure The value of the secure attribute
-     *
-     * @see #isSecure()
-     */
-    public void setSecure (final boolean secure) {
-        isSecure = secure;
-    }
+	/**
+	 * Sets the version of the cookie specification to which this
+	 * cookie conforms.
+	 *
+	 * @param version the version of the cookie.
+	 *
+	 * @see #getVersion
+	 */
+	public void setVersion(final int version) {
+		cookieVersion = version;
+	}
 
+	/**
+	 * Returns true if this cookie has expired.
+	 * @param date Current time
+	 *
+	 * @return <tt>true</tt> if the cookie has expired.
+	 */
+	public boolean isExpired(final Date date) {
+		if (date == null) {
+			throw new IllegalArgumentException("Date may not be null");
+		}
+		return (cookieExpiryDate != null && cookieExpiryDate.getTime() <= date.getTime());
+	}
 
-    /**
-     * Returns null. Cookies prior to RFC2965 do not set this attribute
-     */
-    public int[] getPorts() {
-        return null;
-    }
+	public void setAttribute(final String name, final String value) {
+		this.attribs.put(name, value);
+	}
 
+	public String getAttribute(final String name) {
+		return this.attribs.get(name);
+	}
 
-    /**
-     * Returns the version of the cookie specification to which this
-     * cookie conforms.
-     *
-     * @return the version of the cookie.
-     *
-     * @see #setVersion(int)
-     *
-     */
-    public int getVersion() {
-        return cookieVersion;
-    }
+	public boolean containsAttribute(final String name) {
+		return this.attribs.get(name) != null;
+	}
 
-    /**
-     * Sets the version of the cookie specification to which this
-     * cookie conforms.
-     *
-     * @param version the version of the cookie.
-     *
-     * @see #getVersion
-     */
-    public void setVersion(final int version) {
-        cookieVersion = version;
-    }
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		final ClientCookie clone = (ClientCookie) super.clone();
+		clone.attribs = new HashMap<String, String>(this.attribs);
+		return clone;
+	}
 
-    /**
-     * Returns true if this cookie has expired.
-     * @param date Current time
-     *
-     * @return <tt>true</tt> if the cookie has expired.
-     */
-    public boolean isExpired(final Date date) {
-    	if (date == null) {
-            throw new IllegalArgumentException("Date may not be null");
-        }
-        return (cookieExpiryDate != null && cookieExpiryDate.getTime() <= date.getTime());
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (this == obj)
+			return true;
+		if (obj instanceof ClientCookie) {
+			ClientCookie that = (ClientCookie) obj;
+			return this.getName().equalsIgnoreCase(that.getName()) && this.cookieDomain.equalsIgnoreCase(that.cookieDomain)
+					&& this.cookiePath.equalsIgnoreCase(that.cookiePath);
+		} else {
+			return false;
+		}
+	}
 
-    public void setAttribute(final String name, final String value) {
-        this.attribs.put(name, value);
-    }
+	public int hashCode() {
+		int hash = LangUtils.HASH_SEED;
+		hash = LangUtils.hashCode(hash, this.getName());
+		hash = LangUtils.hashCode(hash, this.cookieDomain);
+		hash = LangUtils.hashCode(hash, this.cookiePath);
+		return hash;
+	}
 
-    public String getAttribute(final String name) {
-        return this.attribs.get(name);
-    }
-
-    public boolean containsAttribute(final String name) {
-        return this.attribs.get(name) != null;
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        final ClientCookie clone = (ClientCookie) super.clone();
-        clone.attribs = new HashMap<String, String>(this.attribs);
-        return clone;
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (obj instanceof ClientCookie) {
-        	ClientCookie that = (ClientCookie) obj;
-            return this.getName().equalsIgnoreCase(that.getName())
-                  && this.cookieDomain.equalsIgnoreCase(that.cookieDomain)
-                  && this.cookiePath.equalsIgnoreCase(that.cookiePath);
-        } else {
-            return false;
-        }
-    }
-
-    public int hashCode() {
-    	int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.getName());
-        hash = LangUtils.hashCode(hash, this.cookieDomain);
-        hash = LangUtils.hashCode(hash, this.cookiePath);
-        return hash;
-    }
-    
-    @Override
-    public String toString() {
-        final StringBuilder buffer = new StringBuilder();
-        buffer.append("[version: ");
-        buffer.append(Integer.toString(this.cookieVersion));
-        buffer.append("]");
-        buffer.append("[name: ");
-        buffer.append(this.name);
-        buffer.append("]");
-        buffer.append("[value: ");
-        buffer.append(this.value);
-        buffer.append("]");
-        buffer.append("[domain: ");
-        buffer.append(this.cookieDomain);
-        buffer.append("]");
-        buffer.append("[path: ");
-        buffer.append(this.cookiePath);
-        buffer.append("]");
-        buffer.append("[expiry: ");
-        buffer.append(this.cookieExpiryDate);
-        buffer.append("]");
-        return buffer.toString();
-    }
+	@Override
+	public String toString() {
+		final StringBuilder buffer = new StringBuilder();
+		buffer.append("[version: ");
+		buffer.append(Integer.toString(this.cookieVersion));
+		buffer.append("]");
+		buffer.append("[name: ");
+		buffer.append(this.name);
+		buffer.append("]");
+		buffer.append("[value: ");
+		buffer.append(this.value);
+		buffer.append("]");
+		buffer.append("[domain: ");
+		buffer.append(this.cookieDomain);
+		buffer.append("]");
+		buffer.append("[path: ");
+		buffer.append(this.cookiePath);
+		buffer.append("]");
+		buffer.append("[expiry: ");
+		buffer.append(this.cookieExpiryDate);
+		buffer.append("]");
+		return buffer.toString();
+	}
 
 }
-

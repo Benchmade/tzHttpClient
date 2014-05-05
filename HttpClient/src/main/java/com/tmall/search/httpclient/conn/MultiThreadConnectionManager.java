@@ -1,11 +1,11 @@
 package com.tmall.search.httpclient.conn;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -19,33 +19,34 @@ import com.tmall.search.httpclient.params.ConnManagerParams.ConnImpl;
 import com.tmall.search.httpclient.params.ConnManagerParams.Options;
 import com.tmall.search.httpclient.util.HttpException;
 
-@Deprecated
-public class ThreadSafeConnectionManager implements HttpConnectiongManager {
+public class MultiThreadConnectionManager implements HttpConnectiongManager {
 
-	private static final Logger LOG = LogManager.getLogger(ThreadSafeConnectionManager.class);
+	private static final Logger LOG = LogManager.getLogger(MultiThreadConnectionManager.class);
 	//链接的管理池
 	private final ConcurrentHashMap<HttpHost, HostConnectionQueue> connetionPool;
 	private ConnManagerParams connParam;
 	private final AtomicInteger globalConnNum = new AtomicInteger();
+	private final AtomicInteger activeConnNum = new AtomicInteger();
+	private final Semaphore connControl ;
 	//关闭标识
 	private volatile boolean shutdown = false;
 	private Lock gcLock = new ReentrantLock();
-
 	/**
 	 * 构造线程安全的链接管理器.
 	 * @param connParam.
 	 * @param hostNum	concurrent的分块数量,影响到并发性能,根据多少ip来设置.
 	 */
-	public ThreadSafeConnectionManager(ConnManagerParams connParam) {
+	public MultiThreadConnectionManager(final ConnManagerParams connParam) {
 		if (connParam == null) {
 			this.connParam = new ConnManagerParams();
 		} else {
 			this.connParam = connParam;
 		}
-		connetionPool = new ConcurrentHashMap<>(this.connParam.getMaxGlobalConnNum()<<1, 0.8F);
+		connetionPool = new ConcurrentHashMap<>(this.connParam.getMaxGlobalConnNum()<<1, 0.8F,64);
+		connControl = new Semaphore(this.connParam.getMaxGlobalConnNum());
 	}
 
-	public ThreadSafeConnectionManager() {
+	public MultiThreadConnectionManager() {
 		this(null);
 	}
 	
@@ -57,27 +58,27 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	@Override
 	public HttpConnection getConnectionWithTimeout(HttpHost host) throws HttpException {
 		HttpConnection connection = null;
-		HostConnectionQueue hostQueue = getHostQueue(host, true);
+		HostConnectionQueue hostQueue = getHostQueue(host,true);
 		if (shutdown) {
 			throw new HttpException("Connection factory has been shutdown.");
 		}
 		if ((connection = getFreeConnection(hostQueue)) != null) {
 			return connection;
 		}
-		if (hostQueue.liveConnNum.get() < this.connParam.getPerHostConnNum() && globalConnNum.get() < this.connParam.getMaxGlobalConnNum()) {
-			connection = createConnection(host,hostQueue);
-		}else if (hostQueue.liveConnNum.get() < this.connParam.getPerHostConnNum() && globalConnNum.get() >= this.connParam.getMaxGlobalConnNum()) {
-			deleteLeastUsedConnection();
+	    if (hostQueue.liveConnNum.get() < this.connParam.getPerHostConnNum()) {
+			if(!connControl.tryAcquire()){
+				deleteLeastUsedConnection();
+			}
 			connection = createConnection(host,hostQueue);
 		}else {
 			try {
-				//LOG.debug(host + " Waiting for the free connection");
 				connection = hostQueue.connQueue.poll(this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT), TimeUnit.MILLISECONDS);
 				if(connection==null){
-					throw new HttpException("waiting a free connection timeout");
+					throw new HttpException("waiting a free connection timeout - " + host);
 				}
+				activeConnNum.incrementAndGet();
 			} catch (InterruptedException e) {
-				throw new HttpException("Unable to get a free connection from Queue", e);
+				throw new HttpException("Unable to get a free connection from Queue - " + host, e);
 			}
 		}
 		return connection;
@@ -85,17 +86,25 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 
 	private HttpConnection createConnection(HttpHost host , HostConnectionQueue hostQueue) throws HttpException{
 		HttpConnection connection = null;
-		if(connParam.getConnImpl()==ConnImpl.AIO){
+		if("https".equalsIgnoreCase(host.getProtocol())){
+			connection = new SSLProtocolConnectionImpl(host, connParam);
+		}else if(connParam.getConnImpl()==ConnImpl.AIO){
 			connection = new ASyncConnectionImpl(host, connParam);
 		}else if(connParam.getConnImpl()==ConnImpl.NIO){
 			connection = new NIOConnectionImpl(host, connParam);
 		}else{
 			throw new HttpException("invoke unknow implemente" + connParam.getConnImpl());
 		}
+		int acn = activeConnNum.incrementAndGet();
 		int liveNum = hostQueue.liveConnNum.incrementAndGet();
 		int gNum = globalConnNum.incrementAndGet();
-		LOG.warn("Create New Connection for ["+ host.toString() + "]{connNum:" + liveNum + "}  " + gNum);
+		LOG.info("Create New Connection for ["+ host.toString() + "]{connNum:" + liveNum + "}  " + gNum + ":" + acn +"="+ connection.getRemoteAddress());
 		return connection;
+	}
+	
+	
+	private HostConnectionQueue getHostQueue(HttpHost host){
+		return this.getHostQueue(host, false);
 	}
 	
 	/**
@@ -106,20 +115,28 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 */
 	private HostConnectionQueue getHostQueue(HttpHost host, boolean create) {
 		HostConnectionQueue connectionQueue = null;
-		gcLock.lock();
-		try {
-			connectionQueue = connetionPool.get(host);
-			if (connectionQueue == null) {
-				connectionQueue = new HostConnectionQueue(this.connParam);
-				HostConnectionQueue value = connetionPool.putIfAbsent(host, connectionQueue);
-				if (value != null) {
-					connectionQueue = value;
-				}else{
-					LOG.error("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm" + connectionQueue);
+		boolean createEntry = false;
+		if(create){
+			gcLock.lock();
+			try{
+				connectionQueue = connetionPool.get(host);
+				if (connectionQueue == null) {
+					connectionQueue = new HostConnectionQueue(this.connParam);
+					HostConnectionQueue value = connetionPool.putIfAbsent(host, connectionQueue);
+					if (value != null) {
+						connectionQueue = value;
+					}else{
+						createEntry = true;
+					}
 				}
+			}finally{
+				gcLock.unlock();
 			}
-		}finally{
-			gcLock.unlock();
+			if(createEntry && connetionPool.size()>this.connParam.getMaxGlobalConnNum()){
+				closeIdleConnections();
+			}
+		}else{
+			connectionQueue = connetionPool.get(host);
 		}
 		return connectionQueue;
 	}
@@ -135,15 +152,24 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		HttpConnection connection = null;
 		while ((connection = hostQueue.connQueue.poll()) != null) {
 			if (!connection.isExpired()) {//判断是否过期
+				activeConnNum.incrementAndGet();
 				return connection;
 			} else {
-				deleteConnection(hostQueue, connection, "getFreeConnection : close Expired conn");
+				deleteConnection(hostQueue, connection, "getFreeConnection : close Expired conn",false);
 			}
 		}
 		return connection;
 	}
-
-	private boolean deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection ,String message) {
+	
+	/**
+	 * 
+	 * @param hostQueue
+	 * @param connection
+	 * @param message
+	 * @param isActive
+	 * @return
+	 */
+	private boolean deleteConnection(HostConnectionQueue hostQueue, HttpConnection connection ,String message, boolean isActive) {
 		boolean success = false;
 		String remoteAddress = null;
 		if (connection != null) {
@@ -159,7 +185,14 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 		}
 		int liveNum = hostQueue.liveConnNum.decrementAndGet();
 		int gNum = globalConnNum.decrementAndGet();
-		LOG.debug(message + " - Removed Connection [" + remoteAddress + "]{connNum:" + liveNum + "} "+ gNum);
+		connControl.release();
+		int acn = 0;
+		if(isActive){
+			acn = activeConnNum.decrementAndGet();
+		}else{
+			acn = activeConnNum.get();
+		}
+		LOG.info(message + " - Removed Connection [" + remoteAddress + "]{connNum:" + liveNum + "} "+ gNum+":"+acn);
 		return success;
 	}
 
@@ -169,38 +202,10 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	@Override
 	public void deleteConnection(HttpHost host, HttpConnection connection,String message) {
 		if (host != null && connection != null) {
-			HostConnectionQueue hostQueue = getHostQueue(host, true);
-			this.deleteConnection(hostQueue, connection, message);
+			HostConnectionQueue hostQueue = getHostQueue(host);
+			this.deleteConnection(hostQueue, connection, message, true);
 		}else{
 			LOG.error("deleteConnection error ! host=" + host + " connection=" + connection);
-		}
-	}
-
-	/**
-	 * 关闭
-	 */
-	@Override
-	public void shutDown() throws IOException{
-		shutdown = true;
-		for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
-			LOG.debug("Ready to shut down ["+entry.getKey().toString() + "]{connNum: " + entry.getValue().connQueue.size()+"}");
-			HostConnectionQueue hcq = entry.getValue();
-			if(hcq.liveConnNum.get()!=hcq.connQueue.size()){
-				try {
-					//等待时间在读+写超时内.
-					int sleepTime = (this.connParam.getValue(Options.READER_TIMROUT)+this.connParam.getValue(Options.WRITE_TIMEOUT));
-					LOG.info("Wait for the release using conn : "+sleepTime+"ms");
-					Thread.sleep(sleepTime);
-				} catch (InterruptedException e) {
-					LOG.error(e);
-				}
-			}
-			if(hcq.liveConnNum.get()!=hcq.connQueue.size()){
-				LOG.warn("release conn timeout, conn leaked");
-			}
-			for (HttpConnection conn : hcq.connQueue) {
-				deleteConnection(hcq,conn,"\tshutdown");
-			}
 		}
 	}
 
@@ -209,8 +214,9 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	 */
 	@Override
 	public void freeConnection(HttpHost host, HttpConnection conn) {
-		HostConnectionQueue hostQueue = getHostQueue(host, true);
+		HostConnectionQueue hostQueue = getHostQueue(host);
 		hostQueue.addConn(conn);
+		activeConnNum.decrementAndGet();
 	}
 
 	@Override
@@ -230,7 +236,7 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 			HttpConnection conn = null;
 			conn = cursor.connQueue.poll();
 			if (conn != null) {
-				deleteConnection(cursor,conn,"deleteLeastUsedConnection");
+				deleteConnection(cursor,conn,"deleteLeastUsedConnection",false);
 				removeLeast = true;
 				break;
 			}
@@ -247,47 +253,84 @@ public class ThreadSafeConnectionManager implements HttpConnectiongManager {
 	public synchronized int closeIdleConnections() {
 		int clearNum = 0;
 		gcLock.lock();
+		long curTime = System.currentTimeMillis();
+		boolean timeOut = false;
+		while(activeConnNum.get()!=0){
+			if(System.currentTimeMillis()-curTime>this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT)){
+				timeOut = true;
+				break;
+			}
+		}
 		try{
-			for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
-				HostConnectionQueue queue = entry.getValue();
-				int removeNum = queue.clearExpired();
-				if(removeNum>0){
-					globalConnNum.addAndGet(-removeNum);
-					clearNum += removeNum;
-				}
-				if (queue.liveConnNum.get() == 0 && queue.lastUseTime > new Date().getTime() - connParam.getValue(Options.CONNECT_TIMEOUT_EXPIRE)) {
-					LOG.error("-----------------------------------------" + entry.getValue());
-					connetionPool.remove(entry.getKey());
+			if(!timeOut){
+				for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
+					HostConnectionQueue queue = entry.getValue();
+					int removeNum = queue.clearExpired();
+					if(removeNum>0){
+						globalConnNum.addAndGet(-removeNum);
+						clearNum += removeNum;
+					}
+					if (queue.liveConnNum.get() == 0 && !queue.isActive()) {
+						connetionPool.remove(entry.getKey());
+						LOG.warn("httpclientwarn remove-----"+entry.getKey() + "-----------------------------------------" + entry.getValue());
+					}
 				}
 			}
 		}finally{
 			gcLock.unlock();
 		}
-		LOG.warn("Remove idle conn num :" + clearNum);
+		LOG.warn("httpclientwarn Remove idle conn num :" + clearNum);
 		return clearNum;
 	}
-
+	/**
+	 * 关闭
+	 */
+	@Override
+	public void shutDown() throws IOException{
+		shutdown = true;
+		long curTime = System.currentTimeMillis();
+		while(activeConnNum.get()!=0){
+			if(System.currentTimeMillis()-curTime>this.connParam.getValue(Options.GET_CONN_WAIT_TIMEOUT)){
+				throw new IOException("Waiting for closing all the connection timeout");
+			}
+		}
+		for (Entry<HttpHost, HostConnectionQueue> entry : connetionPool.entrySet()) {
+			LOG.warn("httpclientwarn Ready to shut down ["+entry.getKey().toString() + "]{connNum: " + entry.getValue().connQueue.size()+"}");
+			HostConnectionQueue hcq = entry.getValue();
+			if(hcq.liveConnNum.get()!=hcq.connQueue.size()){
+				LOG.warn("release conn timeout, conn leaked");
+			}
+			for (HttpConnection conn : hcq.connQueue) {
+				deleteConnection(hcq,conn,"\tshutdown",false);
+			}
+		}
+	}
+	
+	
 	/**
 	 * 每个host对应的链接队列
 	 * @author xiaolin.mxl
 	 */
 	public static class HostConnectionQueue implements Comparable<HostConnectionQueue> {
+		private ConnManagerParams connParam;
+		public HostConnectionQueue(ConnManagerParams connParam) {
+			this.connParam = connParam;
+		}
 		private volatile long lastUseTime = System.currentTimeMillis();
 		//每个host的链接队列
 		private LinkedTransferQueue<HttpConnection> connQueue = new LinkedTransferQueue<HttpConnection>();
 		//这个host 链接在 数量
 		private AtomicInteger liveConnNum = new AtomicInteger();
 
-		private ConnManagerParams connParam;
-		public HostConnectionQueue(ConnManagerParams connParam) {
-			this.connParam = connParam;
-		}
-		
 		public void addConn(HttpConnection conn) {
 			connQueue.add(conn);
 			lastUseTime = conn.getLastUseTime();
 		}
 
+		public boolean isActive(){
+			return System.currentTimeMillis() - lastUseTime < connParam.getValue(Options.CONNECT_TIMEOUT_EXPIRE);
+		}
+		
 		@Override
 		public int compareTo(HostConnectionQueue o) {
 			return Long.compare(lastUseTime, o.lastUseTime);

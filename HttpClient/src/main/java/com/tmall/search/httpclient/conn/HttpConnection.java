@@ -45,5 +45,5 @@ public interface HttpConnection {
 	public boolean isExpired(long idletime, TimeUnit tunit);
 	
 	public String getRemoteAddress();
-
+	
 }
